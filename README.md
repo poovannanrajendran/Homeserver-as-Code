@@ -5,7 +5,7 @@ Production-minded, single-node home-lab blueprint for Proxmox VE with reproducib
 > Public-safe repository: no real credentials, hostnames, or private LAN ranges are stored here.
 
 ## Attribution
-This repository was generated and implemented with **Codex 5.3** in a focused sprint workflow.
+This repository was fully generated and implemented with **Codex 5.3** in less than 2 hours.
 
 ## Scope
 - Single-node Proxmox architecture
