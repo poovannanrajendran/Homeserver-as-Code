@@ -39,6 +39,7 @@ This repository was fully generated and implemented with **Codex 5.3** in less t
 - Real secrets belong in private `.env` files, a secrets manager, or vault
 
 ## Documentation Map
+- Documentation index: `docs/index.md`
 - Requirements + specification: `docs/requirements-specification.md`
 - Implementation plan: `docs/implementation-plan.md`
 - Architecture overview: `docs/architecture.md`
