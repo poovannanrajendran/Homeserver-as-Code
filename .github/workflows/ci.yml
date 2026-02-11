@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  shell-lint-and-compose-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tooling
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Bash syntax check
+        run: |
+          set -euo pipefail
+          bash -n scripts/update_compose_stack.sh
+          bash -n scripts/backup_preflight.sh
+
+      - name: ShellCheck
+        run: |
+          set -euo pipefail
+          shellcheck scripts/update_compose_stack.sh scripts/backup_preflight.sh
+
+      - name: Compose config validation
+        run: |
+          set -euo pipefail
+          for f in stacks/*/docker-compose.yml; do
+            echo "Validating $f"
+            docker compose -f "$f" config >/dev/null
+          done
