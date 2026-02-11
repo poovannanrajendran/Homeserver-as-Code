@@ -1,0 +1,9 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    restart: unless-stopped
+    volumes:
+      - /srv/data/media/config:/config
+      - /mnt/media-library:/media
+    ports:
+      - "8096:8096"

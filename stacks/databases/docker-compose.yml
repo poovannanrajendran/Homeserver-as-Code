@@ -1,0 +1,39 @@
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /srv/data/databases/mariadb:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /srv/data/databases/postgresql:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /srv/data/databases/mongo:/data/db
+    ports:
+      - "27017:27017"
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    volumes:
+      - /srv/data/databases/mssql:/var/opt/mssql
+    ports:
+      - "1433:1433"

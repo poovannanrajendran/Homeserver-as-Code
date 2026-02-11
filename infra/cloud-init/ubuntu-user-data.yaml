@@ -1,0 +1,19 @@
+#cloud-config
+hostname: vm-placeholder
+manage_etc_hosts: true
+users:
+  - default
+  - name: labadmin
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    passwd: CHANGE_ME_HASH
+package_update: true
+packages:
+  - qemu-guest-agent
+  - curl
+  - ca-certificates
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+  - timedatectl set-timezone Europe/London

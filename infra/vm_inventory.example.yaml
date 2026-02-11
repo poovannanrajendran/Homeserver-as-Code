@@ -1,0 +1,21 @@
+vms:
+  - name: docker-host-01
+    vmid: 100
+    ip: 192.0.2.20
+    role: docker_host
+  - name: automation-runner-01
+    vmid: 103
+    ip: 192.0.2.30
+    role: automation_runner
+  - name: ai-node-01
+    vmid: 101
+    ip: 192.0.2.24
+    role: ai
+  - name: media-01
+    vmid: 104
+    ip: 192.0.2.26
+    role: media
+  - name: pbs-01
+    vmid: 105
+    ip: 192.0.2.25
+    role: backup
