@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "supergateway",
+        "--streamableHttp",
+        "http://192.168.1.30:5678/mcp-server/http",
+        "--header",
+        "authorization: Bearer <YOUR_N8N_MCP_ACCESS_TOKEN>"
+      ]
+    }
+  }
+}
