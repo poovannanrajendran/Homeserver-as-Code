@@ -1,0 +1,143 @@
+# HomeServer Health Monitoring (Grafana + Prometheus + Alertmanager)
+
+## Scope
+This document captures the current monitoring setup for:
+- Proxmox host health
+- VM reachability/SSH checks
+- App URL uptime (LAN + Vercel)
+- Database health and size checks (local Postgres + Supabase + remote Postgres dependency)
+- Disk usage checks
+- Cron job inventory/coverage
+- Alerting to email + Telegram
+
+## Where It Runs
+- Host: `automation-runner-01` (`192.168.1.30`)
+- Stack path: `/srv/stacks/observability`
+
+## Dashboard Access
+- Grafana URL (LAN): `http://192.168.1.30:3000`
+- Default login currently configured: `admin` / `admin`
+- Dashboard URL: `http://192.168.1.30:3000/d/homeserver-health/homeserver-health`
+- Additional dashboard: `Vercel + Lloyds Pages` (`vercel-lloyds-pages`)
+- Purpose: track all Vercel apps and the Lloyds GitHub Pages site in one view
+- Live dashboard URL: `http://192.168.1.30:3000/d/vercel-lloyds-pages/vercel-2b-lloyds-pages`
+- Browser-verified state: dashboard imported successfully and renders in logged-in Chrome
+- The main stat cards have drilldown links to the underlying Prometheus queries.
+- Use those links when a card is amber or red to inspect the exact failing endpoints.
+- The dashboard also includes explicit `HTTP Drilldown Details` and `TCP Drilldown Details` tables under the summary cards.
+
+## What Is Monitored
+
+### Infrastructure
+- Proxmox HTTPS: `https://192.168.1.250:8006`
+- VM ping + SSH:
+  - `192.168.1.20` (`docker-host-01`)
+  - `192.168.1.24` (`ai-node-01`)
+  - `192.168.1.30` (`automation-runner-01`)
+
+### Application/Uptime URLs
+- LAN services (`:3010`, `:9000`, `:5678`, etc.)
+- Vercel apps, including:
+  - `https://challenge-portfolio-showcase.vercel.app`
+  - plus the full 30-app portfolio list and `poovi-me-site`, `memex-poovi`
+- GitHub Pages:
+  - `https://poovannanrajendran.github.io/lloyds-market-news-digest/`
+
+### Databases
+- Local Postgres (`lloyds_digest`): `postgresql://dbuser:dbuser@localhost:5432/lloyds_digest`
+- Local Postgres (`memex`): `postgresql://dbuser:dbuser@localhost:5432/memex`
+- Remote dependency Postgres (`youtube_liked_videos`): `postgresql://dbuser:dbuser@192.168.1.20:5432/youtube_liked_videos`
+- Supabase Postgres: `db.gzrxtjaujbcgwifupebq.supabase.co:5432`
+- Mongo Atlas TCP check: `poovannnan.6r4o1.mongodb.net:27017`
+
+### Disk + Cron
+- Disk usage for `/` and `/var`
+- Cron job counts:
+  - local runner cron count
+  - remote cron count probes (Proxmox + VMs)
+
+## Metrics Produced by `host_checks.sh`
+- `obs_proxmox_https_up`
+- `obs_ping_up`
+- `obs_ssh_up`
+- `obs_postgres_query_ok`
+- `obs_postgres_db_size_bytes`
+- `obs_filesystem_used_percent`
+- `obs_cron_jobs_total`
+- `obs_mongo_atlas_tcp_up`
+- `obs_supabase_configured`
+- `obs_health_collector_run_timestamp`
+
+Collector files:
+- Script: `/srv/stacks/observability/scripts/host_checks.sh`
+- Env: `/srv/stacks/observability/scripts/host_checks.env`
+- Output: `/srv/stacks/observability/textfile/host_checks.prom`
+- Cron: every 5 minutes
+
+## Alerting
+
+### Rules (Prometheus)
+File: `/srv/stacks/observability/prometheus/rules/homeserver-alerts.yml`
+
+Configured alerts:
+- `ProxmoxDown`
+- `VmUnreachable`
+- `DatabaseCheckFail`
+- `DiskUsageHigh`
+
+### Routing (Alertmanager)
+Rendered config:
+- `/srv/stacks/observability/alertmanager/alertmanager.yml`
+
+Inputs:
+- `/srv/stacks/observability/scripts/alertmanager.env`
+
+Receivers:
+- Email (SMTP relay via `192.168.1.20:1587`)
+- Telegram (bot + chat id)
+
+## Current Operational Notes
+- Alert sender was changed to `hello@britaroma.com` so SMTP relay policy accepts outgoing alerts.
+- Email delivery now passes relay checks (`status=sent` visible in `smtp-relay` logs).
+- Telegram API path was validated with bot send test to chat id `5753819446`.
+- Amber/red cards are threshold states, not cosmetic:
+  - amber means degraded or partially failing
+  - red means failing or below the healthy threshold
+- Current red/amber comes from aggregate probe health, not the Grafana password change.
+- The new drilldown rows show the exact endpoints with `probe_success == 0`.
+
+## Dashboard Import/Update (Important)
+On this host, Grafana file-based datasource provisioning can fail with:
+- `Datasource provisioning error: data source not found`
+
+Use API-based import helper instead for catalog visibility:
+```bash
+/srv/stacks/observability/scripts/import_homeserver_dashboard.sh
+```
+If you need the drilldown links to appear immediately, re-import the dashboard JSON after copying the updated file into `/srv/stacks/observability/grafana/dashboards/homeserver-health.json`.
+The `Vercel + Lloyds Pages` dashboard was imported the same way and verified in Chrome against:
+`http://192.168.1.30:3000/d/vercel-lloyds-pages/vercel-2b-lloyds-pages`
+
+## Quick Health Commands
+```bash
+# Prometheus
+curl -fsS http://127.0.0.1:9090/-/healthy
+
+# Alertmanager
+curl -fsS http://127.0.0.1:9093/-/healthy
+
+# Grafana
+curl -fsS http://127.0.0.1:3000/api/health
+
+# Active rules
+curl -fsS http://127.0.0.1:9090/api/v1/rules | jq -r '.data.groups[]?.rules[]? | select(.type=="alerting") | [.name,.state,.health] | @tsv'
+
+# Scrape targets
+curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | [.labels.job,.labels.instance,.health,.lastError] | @tsv'
+```
+
+## Credentials and Secrets
+- Runtime secrets are stored on host env files under:
+  - `/srv/stacks/observability/scripts/alertmanager.env`
+  - `/srv/stacks/observability/scripts/host_checks.env`
+- Do not commit secret values to git.
