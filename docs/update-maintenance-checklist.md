@@ -135,6 +135,11 @@ Notifications:
 Deployment helper:
 - `scripts/install_monthly_maintenance.sh` installs the service/timer pair on the runner and enables both timers
 
+Webhook source of truth:
+- Use `/Users/poovannanrajendran/Documents/GitHub/lloyds-market-news-digest/.env` on `automation-runner-01` when you want the shared Slack/Discord webhooks used by Lloyds alerts.
+- The runner maintenance scripts accept both `ALERT_WEBHOOK_SLACK` / `ALERT_WEBHOOK_DISCORD` and `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
+- If you prefer a dedicated runner-only file, place the same values in `/srv/stacks/observability/scripts/schedule_guard.env` and `/srv/stacks/observability/scripts/monthly_maintenance.env`.
+
 ## Post-Boot Verification Checklist
 After each boot or reboot, check:
 

@@ -79,8 +79,8 @@ PY
 notify() {
   local title="$1"
   local body="$2"
-  notify_webhook "${SLACK_WEBHOOK_URL:-}" "${title}" "${body}" || true
-  notify_webhook "${DISCORD_WEBHOOK_URL:-}" "${title}" "${body}" || true
+  notify_webhook "${SLACK_WEBHOOK_URL:-${ALERT_WEBHOOK_SLACK:-}}" "${title}" "${body}" || true
+  notify_webhook "${DISCORD_WEBHOOK_URL:-${ALERT_WEBHOOK_DISCORD:-}}" "${title}" "${body}" || true
 }
 
 ssh_remote() {
