@@ -72,15 +72,15 @@ This page is the working reference for the homeserver environment. It captures:
 ## Databases
 
 ### Local Postgres: lloyds market news digest
-- URL: `postgresql://dbuser:dbuser@localhost:5432/lloyds_digest`
+- URL: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - Usage: primary Postgres for the `lloyds-market-news-digest` project
 
 ### Local Postgres: memex
-- URL: `postgresql://dbuser:dbuser@localhost:5432/memex`
+- URL: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - Usage: project database for memex work
 
 ### Remote Postgres: youtube summary fallback
-- URL: `postgresql://dbuser:dbuser@192.168.1.20:5432/youtube_liked_videos`
+- URL: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - Usage: fallback database used by summary scripts
 
 ### Supabase Postgres
@@ -89,7 +89,7 @@ This page is the working reference for the homeserver environment. It captures:
 - Usage: Supabase backend checks and connected app services
 
 ### MongoDB Atlas
-- URI: `mongodb+srv://dbuser:dbuser@poovannnan.6r4o1.mongodb.net/lloyds_digest_raw?retryWrites=true&w=majority`
+- URI: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - Usage: raw source data for `lloyds-market-news-digest`
 - Health check: TCP probe against `poovannnan.6r4o1.mongodb.net:27017`
 
@@ -100,7 +100,7 @@ This page is the working reference for the homeserver environment. It captures:
 - Notes: no Postgres/MySQL backend configured in the observed `.env`
 
 ### RAG / AI support databases
-- RAG Postgres: `postgresql://ai_ops_rag_app:ai_ops_rag_app@host.docker.internal:5432/ai_ops_rag`
+- RAG Postgres: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - RAG Qdrant: `http://localhost:6333`
 
 ## Docker and Compose Workloads on docker-host-01

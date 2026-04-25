@@ -44,11 +44,11 @@ This document captures the current monitoring setup for:
   - `https://poovannanrajendran.github.io/lloyds-market-news-digest/`
 
 ### Databases
-- Local Postgres (`lloyds_digest`): `postgresql://dbuser:dbuser@localhost:5432/lloyds_digest`
-- Local Postgres (`memex`): `postgresql://dbuser:dbuser@localhost:5432/memex`
-- Remote dependency Postgres (`youtube_liked_videos`): `postgresql://dbuser:dbuser@192.168.1.20:5432/youtube_liked_videos`
-- Supabase Postgres: `db.gzrxtjaujbcgwifupebq.supabase.co:5432`
-- Mongo Atlas TCP check: `poovannnan.6r4o1.mongodb.net:27017`
+- Local Postgres (`lloyds_digest`): `<redacted; see local/private/observability-homeserver-health.md>`
+- Local Postgres (`memex`): `<redacted; see local/private/observability-homeserver-health.md>`
+- Remote dependency Postgres (`youtube_liked_videos`): `<redacted; see local/private/observability-homeserver-health.md>`
+- Supabase Postgres: `<redacted; see local/private/observability-homeserver-health.md>`
+- Mongo Atlas TCP check: `<redacted; see local/private/observability-homeserver-health.md>`
 
 ### Disk + Cron
 - Disk usage for `/` and `/var`

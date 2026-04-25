@@ -3,11 +3,7 @@
 *.env
 !.env.example
 local/
-local/SECRETS.md
-local/MISSIONOPENCLAW_RUNBOOK.md
-docs/runbooks.md
-docs/homeserver-inventory-and-data-collection.md
-docs/observability-homeserver-health.md
+local/private/
 
 # OS/editor
 .DS_Store
