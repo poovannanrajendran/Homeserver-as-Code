@@ -143,4 +143,5 @@ curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | 
   - `/srv/stacks/observability/scripts/host_checks.env`
   - `/srv/stacks/observability/scripts/monthly_maintenance.env`
 - The schedule guard and monthly maintenance scripts also accept the Lloyds project aliases `ALERT_WEBHOOK_SLACK` and `ALERT_WEBHOOK_DISCORD` from `/Users/poovannanrajendran/Documents/GitHub/lloyds-market-news-digest/.env`.
+- Recommended sync helper: `scripts/sync_runner_alert_env.sh` copies those aliases into the runner env files used by the guard and monthly maintenance jobs.
 - Do not commit secret values to git.

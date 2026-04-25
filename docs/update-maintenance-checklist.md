@@ -139,6 +139,7 @@ Webhook source of truth:
 - Use `/Users/poovannanrajendran/Documents/GitHub/lloyds-market-news-digest/.env` on `automation-runner-01` when you want the shared Slack/Discord webhooks used by Lloyds alerts.
 - The runner maintenance scripts accept both `ALERT_WEBHOOK_SLACK` / `ALERT_WEBHOOK_DISCORD` and `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 - If you prefer a dedicated runner-only file, place the same values in `/srv/stacks/observability/scripts/schedule_guard.env` and `/srv/stacks/observability/scripts/monthly_maintenance.env`.
+- Recommended sync helper: `scripts/sync_runner_alert_env.sh` copies the webhook values from the Lloyds `.env` into the runner env files.
 
 ## Post-Boot Verification Checklist
 After each boot or reboot, check:
