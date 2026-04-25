@@ -115,6 +115,26 @@ Recommended order for a broad maintenance window:
 4. AI node VM.
 5. Any remaining guest LXC/VMs if they are not already covered.
 
+## Monthly Automation
+The recurring maintenance job now runs from `automation-runner-01`.
+
+Planned schedule:
+- `*-*-01 03:00:00` via `monthly-maintenance.timer`
+
+Behavior:
+- starts on the runner
+- updates hosts in sequence
+- if the runner itself needs a reboot, it writes a resume marker and reboots
+- a boot-time resume timer picks up the state and sends the final health summary
+
+Notifications:
+- Slack webhook on start, reboot checkpoints, resume, and finish
+- Discord webhook on start, reboot checkpoints, resume, and finish
+- final health summary after completion
+
+Deployment helper:
+- `scripts/install_monthly_maintenance.sh` installs the service/timer pair on the runner and enables both timers
+
 ## Post-Boot Verification Checklist
 After each boot or reboot, check:
 
@@ -188,3 +208,10 @@ Verified healthy after boot:
 Guests intentionally left stopped:
 - `102` `ubuntu-dev-01`
 - `104` `media-01`
+
+## Monthly Resume Flow
+If `automation-runner-01` reboots during the monthly job:
+- the coordinator writes `/srv/stacks/observability/state/monthly-maintenance.json`
+- `monthly-maintenance-resume.timer` runs on boot
+- the resume service checks for the marker and calls the main script with `--resume`
+- the state is cleared after the final summary is sent

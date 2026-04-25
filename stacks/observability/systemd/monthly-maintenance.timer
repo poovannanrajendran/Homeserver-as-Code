@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly homelab maintenance timer
+
+[Timer]
+OnCalendar=*-*-01 03:00:00
+Persistent=true
+RandomizedDelaySec=10m
+Unit=monthly-maintenance.service
+
+[Install]
+WantedBy=timers.target

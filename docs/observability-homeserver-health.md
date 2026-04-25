@@ -100,6 +100,7 @@ Receivers:
 - Alert sender was changed to `hello@britaroma.com` so SMTP relay policy accepts outgoing alerts.
 - Email delivery now passes relay checks (`status=sent` visible in `smtp-relay` logs).
 - Telegram API path was validated with bot send test to chat id `5753819446`.
+- Monthly maintenance notifications are wired through Slack and Discord webhooks from the runner-side maintenance script.
 - Amber/red cards are threshold states, not cosmetic:
   - amber means degraded or partially failing
   - red means failing or below the healthy threshold
@@ -140,4 +141,5 @@ curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | 
 - Runtime secrets are stored on host env files under:
   - `/srv/stacks/observability/scripts/alertmanager.env`
   - `/srv/stacks/observability/scripts/host_checks.env`
+  - `/srv/stacks/observability/scripts/monthly_maintenance.env`
 - Do not commit secret values to git.

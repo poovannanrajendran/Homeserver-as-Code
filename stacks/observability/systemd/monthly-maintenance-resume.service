@@ -1,0 +1,9 @@
+[Unit]
+Description=Resume monthly homelab maintenance after reboot
+ConditionPathExists=/srv/stacks/observability/state/monthly-maintenance.json
+
+[Service]
+Type=oneshot
+ExecStart=/srv/stacks/observability/scripts/monthly_maintenance_resume.sh
+WorkingDirectory=/srv/stacks/observability
+User=root

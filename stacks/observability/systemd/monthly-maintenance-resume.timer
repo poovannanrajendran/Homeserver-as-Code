@@ -1,0 +1,10 @@
+[Unit]
+Description=Run post-boot maintenance resume check
+
+[Timer]
+OnBootSec=2min
+Persistent=true
+Unit=monthly-maintenance-resume.service
+
+[Install]
+WantedBy=timers.target
