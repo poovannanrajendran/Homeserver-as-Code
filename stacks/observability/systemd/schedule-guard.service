@@ -1,0 +1,10 @@
+[Unit]
+Description=Schedule guard for homelab timers and cron jobs
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/srv/stacks/observability/scripts/schedule_guard.sh
+WorkingDirectory=/srv/stacks/observability
+User=root

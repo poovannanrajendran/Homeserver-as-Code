@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily schedule guard for homelab timers and cron jobs
+
+[Timer]
+OnCalendar=*-*-* 06:30:00
+Persistent=true
+RandomizedDelaySec=15m
+Unit=schedule-guard.service
+
+[Install]
+WantedBy=timers.target

@@ -215,3 +215,23 @@ If `automation-runner-01` reboots during the monthly job:
 - `monthly-maintenance-resume.timer` runs on boot
 - the resume service checks for the marker and calls the main script with `--resume`
 - the state is cleared after the final summary is sent
+
+## Schedule Drift Guard
+There is also a daily schedule integrity check on `automation-runner-01`.
+
+Planned schedule:
+- `*-*-* 06:30:00` via `schedule-guard.timer`
+
+What it checks:
+- `youtube-sync.timer` on `automation-runner-01`
+- `monthly-maintenance.timer` and `monthly-maintenance-resume.timer` on `automation-runner-01`
+- `openclaw-weekly-update.timer`, `ai-node-weekly-os-update.timer`, and `ai-node-conditional-reboot.timer` on `ai-node-01`
+- the `youtube_enrichment/run_enrichment.sh` cron entry on `ai-node-01`
+- the `nextcloud-cron` container on `docker-host-01`
+
+Behavior:
+- sends Slack/Discord notifications if any schedule is missing
+- prints a full status summary when all checks pass
+
+Deployment helper:
+- `scripts/install_schedule_guard.sh` installs the service/timer pair on the runner and enables the timer
