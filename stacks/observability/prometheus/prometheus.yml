@@ -28,7 +28,7 @@ scrape_configs:
       - targets: ["obs-postgres-exporter-local:9187"]
 
   - job_name: blackbox_http
-    scrape_interval: 15m
+    scrape_interval: 24h
     metrics_path: /probe
     params:
       module: [http_2xx]
