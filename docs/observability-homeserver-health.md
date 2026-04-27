@@ -28,6 +28,11 @@ This document captures the current monitoring setup for:
 
 ## What Is Monitored
 
+### Probe Cadence
+- Vercel + GitHub Pages HTTP probes: every 5 minutes
+- Internal infrastructure TCP probes: every 1 minute
+- This was intentionally slowed down to reduce Vercel Edge Request usage on the free plan.
+
 ### Infrastructure
 - Proxmox HTTPS: `https://192.168.1.250:8006`
 - VM ping + SSH:
