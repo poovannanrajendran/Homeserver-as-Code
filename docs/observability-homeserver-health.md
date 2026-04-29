@@ -29,9 +29,9 @@ This document captures the current monitoring setup for:
 ## What Is Monitored
 
 ### Probe Cadence
-- Vercel + GitHub Pages HTTP probes: every 24 hours
+- External Vercel/GitHub Pages probes: disabled
 - Internal infrastructure TCP probes: every 1 minute
-- This was intentionally slowed down to reduce Vercel Edge Request usage on the free plan.
+- The daily schedule guard remains enabled for schedule drift detection.
 
 ### Infrastructure
 - Proxmox HTTPS: `https://192.168.1.250:8006`
@@ -43,10 +43,6 @@ This document captures the current monitoring setup for:
 ### Application/Uptime URLs
 - LAN services (`:3010`, `:9000`, `:5678`, etc.)
 - Vercel apps, including:
-  - `https://challenge-portfolio-showcase.vercel.app`
-  - plus the full 30-app portfolio list and `poovi-me-site`, `memex-poovi`
-- GitHub Pages:
-  - `https://poovannanrajendran.github.io/lloyds-market-news-digest/`
 
 ### Databases
 - Local Postgres (`lloyds_digest`): `<redacted; see local/private/observability-homeserver-health.md>`

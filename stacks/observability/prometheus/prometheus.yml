@@ -35,40 +35,6 @@ scrape_configs:
     static_configs:
       - targets:
           - https://192.168.1.250:8006
-          - https://submission-triage-copilot.vercel.app
-          - https://portfolio-mix-dashboard.vercel.app
-          - https://risk-appetite-parser.vercel.app
-          - https://slip-reviewer.vercel.app
-          - https://class-of-business-classifier.vercel.app
-          - https://exposure-accumulation-heatmap.vercel.app
-          - https://cat-event-briefing.vercel.app
-          - https://policy-endorsement-diff-checker.vercel.app
-          - https://referral-priority-queue-scorer.vercel.app
-          - https://claims-fnol-triage-assistant.vercel.app
-          - https://binder-capacity-monitor.vercel.app
-          - https://treaty-structure-explainer.vercel.app
-          - https://exposure-clash-detector.vercel.app
-          - https://claims-leakage-flagger.vercel.app
-          - https://broker-submission-builder.vercel.app
-          - https://exposure-scenario-modeller.vercel.app
-          - https://mrc-checker.vercel.app
-          - https://placement-tracker.vercel.app
-          - https://wording-risk-diff-checker.vercel.app
-          - https://regulatory-update-digest.vercel.app
-          - https://meeting-prep-briefing.vercel.app
-          - https://renewal-intelligence-copilot.vercel.app
-          - https://ops-health-monitor.vercel.app
-          - https://data-quality-validator.vercel.app
-          - https://sanctions-screening-aid.vercel.app
-          - https://qbr-narrative-generator.vercel.app
-          - https://team-capacity-planner.vercel.app
-          - https://stakeholder-comms-drafter.vercel.app
-          - https://insurance-ai-readiness-scorer.vercel.app
-          - https://loss-ratio-triangulator.vercel.app
-          - https://poovi-me-site.vercel.app
-          - https://memex-poovi.vercel.app
-          - https://challenge-portfolio-showcase.vercel.app
-          - https://poovannanrajendran.github.io/lloyds-market-news-digest/
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -76,7 +42,6 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: obs-blackbox:9115
-
   - job_name: blackbox_tcp_infra
     scrape_interval: 1m
     metrics_path: /probe

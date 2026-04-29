@@ -226,7 +226,7 @@ If `automation-runner-01` reboots during the monthly job:
 There is also a daily schedule integrity check on `automation-runner-01`.
 
 ## Monitoring Cadence Note
-- Vercel and GitHub Pages uptime probes are intentionally limited to a 24-hour cadence to avoid burning through free-tier Edge Requests.
+- Vercel and GitHub Pages uptime probes are currently disabled to stop Edge Request usage.
 
 Planned schedule:
 - `*-*-* 06:30:00` via `schedule-guard.timer`
