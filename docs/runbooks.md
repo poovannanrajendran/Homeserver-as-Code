@@ -79,6 +79,16 @@ What this emits:
 - `obs_cron_jobs_total`
 - `obs_mongo_atlas_tcp_up`
 - `obs_supabase_configured`
+- `obs_qdrant_http_up`
+
+Qdrant monitoring:
+```bash
+# on automation-runner-01
+grep obs_qdrant_http_up /srv/stacks/observability/textfile/host_checks.prom
+curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | select(.labels.job=="qdrant") | [.labels.job,.labels.instance,.health,.lastError] | @tsv'
+```
+
+Qdrant health uses `/readyz` or `/healthz`. Do not use `/health`; Qdrant 1.17.1 returns 404 there.
 
 Important: data volume permissions
 - `grafana-data`, `prometheus-data`, and `loki-data` must be writable by the container runtime users.
@@ -88,6 +98,61 @@ sudo chmod -R 0777 /srv/stacks/observability/grafana-data /srv/stacks/observabil
 cd /srv/stacks/observability
 docker compose restart grafana prometheus loki
 ```
+
+## OpenClaw + Memex Memory Stack
+
+Hosts:
+- OpenClaw: `ai-node-01` (`192.168.1.24`)
+- Qdrant: `docker-host-01` (`192.168.1.20`)
+- Memex runner API: `automation-runner-01` (`192.168.1.30`)
+
+OpenClaw checks:
+```bash
+ssh labadmin@192.168.1.24
+sudo -u openclaw openclaw health --json
+sudo -u openclaw openclaw agents list --json
+sudo -u openclaw openclaw agents bindings --json
+sudo -u openclaw openclaw mcp list
+sudo -u openclaw -H sh -lc 'set -a; . /etc/openclaw/mem0.env; openclaw mem0 status --json'
+sudo /usr/local/bin/memory_health.sh
+```
+
+Note:
+- Mem0 namespaces are logical today. The shared Qdrant collection is `mem0_768d`, and agent scoping is carried in payload `user_id` values like `poovi:agent:wayne`.
+- OpenClaw control UI no longer uses browser basic auth on the tailnet path; access is network-only via the OpenClaw gateway config (`gateway.auth.mode = none`, device auth disabled).
+
+Important paths:
+- OpenClaw config: `/var/lib/openclaw/.openclaw/openclaw.json`
+- OpenClaw home: `/var/lib/openclaw`
+- Mem0 env: `/etc/openclaw/mem0.env`
+- Agent instructions: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
+- Telegram route: `fury` is explicitly bound to `telegram` account `default`; `workspace-fury/BOOTSTRAP.md` should be absent after seeding, and `IDENTITY.md`, `USER.md`, and `MEMORY.md` should be present in the workspace.
+- Memory health script: `/usr/local/bin/memory_health.sh`
+- Memory health cron: `/etc/cron.d/openclaw-memory-health`
+
+Qdrant checks:
+```bash
+ssh labadmin@192.168.1.20
+cd /srv/stacks/databases
+KEY="$(sed -n 's/^QDRANT_API_KEY=//p' .env | tail -n 1)"
+curl -fsS -H "api-key: ${KEY}" http://192.168.1.20:6333/readyz
+curl -fsS -H "api-key: ${KEY}" http://192.168.1.20:6333/collections
+```
+
+Memex runner checks:
+```bash
+ssh labadmin@192.168.1.30
+systemctl status memex-runner --no-pager
+TOKEN="$(sed -n 's/^RUNNER_API_SECRET=//p' /home/labadmin/memex/.env | tail -n 1)"
+curl -fsS -H "Authorization: Bearer ${TOKEN}" "http://127.0.0.1:8000/search?q=lloyds&limit=1"
+curl -fsS -H "Authorization: Bearer ${TOKEN}" "http://127.0.0.1:8000/wiki/synthesis/list"
+```
+
+Known caveats:
+- Memex `memex-knowledge` in Qdrant is payload-only. Use MCP `memex_search`/`memex_get` for semantic working context.
+- The live OpenClaw schema rejects `agents.list[*].plugins`; do not document or apply per-agent Mem0 config overrides until OpenClaw supports them.
+- Mem0 CLI add/search hung during the local Ollama smoke test. Treat Mem0 as connected but not fully auto-capture-verified until a real conversation test passes.
+- Telegram memory validation should use a plain message, then a fresh session recall prompt. If the bot answers like a bootstrap shell, check that `workspace-fury/BOOTSTRAP.md` is gone and the workspace has the seeded `IDENTITY.md`, `USER.md`, and `MEMORY.md` files.
 
 ## Nextcloud: Enable Web Updater
 ```bash

@@ -6,6 +6,7 @@ This document captures the current monitoring setup for:
 - VM reachability/SSH checks
 - App URL uptime (LAN + Vercel)
 - Database health and size checks (local Postgres + Supabase + remote Postgres dependency)
+- Qdrant authenticated readiness and Prometheus scrape status
 - Disk usage checks
 - Cron job inventory/coverage
 - Alerting to email + Telegram
@@ -31,6 +32,7 @@ This document captures the current monitoring setup for:
 ### Probe Cadence
 - External Vercel/GitHub Pages probes: disabled
 - Internal infrastructure TCP probes: every 1 minute
+- Blackbox HTTP probe: every 1 minute
 - The daily schedule guard remains enabled for schedule drift detection.
 
 ### Infrastructure
@@ -50,6 +52,13 @@ This document captures the current monitoring setup for:
 - Remote dependency Postgres (`youtube_liked_videos`): `<redacted; see local/private/observability-homeserver-health.md>`
 - Supabase Postgres: `<redacted; see local/private/observability-homeserver-health.md>`
 - Mongo Atlas TCP check: `<redacted; see local/private/observability-homeserver-health.md>`
+- Qdrant vector store: `192.168.1.20:6333`
+  - Prometheus job: `qdrant`
+  - Auth: bearer credentials file mounted at `/etc/prometheus/secrets/qdrant_api_key`
+  - The host secret is `/srv/stacks/observability/prometheus/secrets/qdrant_api_key` on `automation-runner-01`; it must be owned/readable by the Prometheus container user (`nobody:nogroup`, mode `0400`).
+  - Host-check metric: `obs_qdrant_http_up`
+  - Health endpoint: `/readyz` or `/healthz`; do not use `/health`
+  - Current Grafana option: dashboard ID `24603` ("Qdrant Dashboard (Prometheus metrics only)") for this Prometheus-only setup. If you later add `qdrant-exporter`, the richer Qdrant dashboards can be reconsidered.
 
 ### Disk + Cron
 - Disk usage for `/` and `/var`
@@ -67,6 +76,7 @@ This document captures the current monitoring setup for:
 - `obs_cron_jobs_total`
 - `obs_mongo_atlas_tcp_up`
 - `obs_supabase_configured`
+- `obs_qdrant_http_up`
 - `obs_health_collector_run_timestamp`
 
 Collector files:
@@ -107,6 +117,7 @@ Receivers:
   - red means failing or below the healthy threshold
 - Current red/amber comes from aggregate probe health, not the Grafana password change.
 - The new drilldown rows show the exact endpoints with `probe_success == 0`.
+- The runner textfile collector must emit valid Prometheus exposition or node-exporter will drop the whole `host_checks.prom` file; the current `host_checks.sh` fixes quoted labels and duplicate filesystem series.
 
 ## Dashboard Import/Update (Important)
 On this host, Grafana file-based datasource provisioning can fail with:
@@ -136,6 +147,9 @@ curl -fsS http://127.0.0.1:9090/api/v1/rules | jq -r '.data.groups[]?.rules[]? |
 
 # Scrape targets
 curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | [.labels.job,.labels.instance,.health,.lastError] | @tsv'
+
+# Qdrant host-check metric
+grep obs_qdrant_http_up /srv/stacks/observability/textfile/host_checks.prom
 ```
 
 ## Credentials and Secrets
@@ -143,6 +157,7 @@ curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | 
   - `/srv/stacks/observability/scripts/alertmanager.env`
   - `/srv/stacks/observability/scripts/host_checks.env`
   - `/srv/stacks/observability/scripts/monthly_maintenance.env`
+  - `/srv/stacks/observability/prometheus/secrets/qdrant_api_key`
 - The schedule guard and monthly maintenance scripts also accept the Lloyds project aliases `ALERT_WEBHOOK_SLACK` and `ALERT_WEBHOOK_DISCORD` from `/Users/poovannanrajendran/Documents/GitHub/lloyds-market-news-digest/.env`.
 - Recommended sync helper: `scripts/sync_runner_alert_env.sh` copies those aliases into the runner env files used by the guard and monthly maintenance jobs.
 - Do not commit secret values to git.
