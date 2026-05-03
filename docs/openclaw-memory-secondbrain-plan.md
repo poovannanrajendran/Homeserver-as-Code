@@ -112,8 +112,8 @@ Infrastructure:
 | Requirement | Value | Status |
 |-------------|-------|--------|
 | OpenClaw version | >= 2026.4.15 | ✓ 2026.4.29 confirmed |
-| OpenAI key configured | For Mem0 extraction LLM | ✓ Confirmed in providers |
-| Gemini key configured | For embedding | ✓ Confirmed in providers |
+| Ollama running on ai-node-01 | Mem0 extraction LLM (`llama3.2:3b`) + embedding (`nomic-embed-text`) | ✓ Confirmed — Mem0 uses local Ollama, not OpenAI/Gemini |
+| OpenAI / Gemini keys configured | Model routing for agents (not Mem0) | ✓ Confirmed in providers |
 | docker-host-01 accessible | Qdrant target | ✓ 192.168.1.20 |
 | automation-runner-01 n8n | Memex → Qdrant sync | ✓ 192.168.1.30 |
 | Memex runner API | Second Brain | `memex-runner.service` on 192.168.1.30 |
@@ -270,9 +270,9 @@ Send to `@MissionOpenClaw_bot`:
 
 ```
 Remember this: I am building a multi-agent OpenClaw setup.
-Agents: fury (router), cyborg (ops), wayne (career/brand), oracle (market intel),
-banner (coding), stark (brainstorm), xavier (LinkedIn), deadpool (X),
-strange (YouTube), diana (Instagram), loki (viral writer).
+Agents: fury (router only), cyborg (ops), wayne (career/brand), oracle (market intel),
+banner (coding), stark (brainstorm), xavier (LinkedIn ideas), deadpool (X),
+strange (YouTube), diana (Instagram), loki (viral writer + LinkedIn publisher).
 ```
 
 Then:

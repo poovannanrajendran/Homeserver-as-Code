@@ -127,6 +127,7 @@ Important paths:
 - Mem0 env: `/etc/openclaw/mem0.env`
 - Agent instructions: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
 - Telegram route: `fury` is explicitly bound to `telegram` account `default`; `workspace-fury/BOOTSTRAP.md` should be absent after seeding, and `IDENTITY.md`, `USER.md`, and `MEMORY.md` should be present in the workspace.
+- Agent split for publishing: `fury` only routes; `loki` owns LinkedIn drafting and posting via `linkedin_post`.
 - Memory health script: `/usr/local/bin/memory_health.sh`
 - Memory health cron: `/etc/cron.d/openclaw-memory-health`
 

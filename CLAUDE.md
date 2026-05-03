@@ -66,6 +66,7 @@ Qdrant is part of the `databases` stack:
 - Memory stack: `openclaw-mem0` in OSS mode + `memory-wiki` bridge.
 - Gateway auth is now network-only for the control UI: `gateway.auth.mode = none` and `gateway.controlUi.dangerouslyDisableDeviceAuth = true`; nginx no longer adds a browser basic-auth challenge.
 - Telegram is explicitly routed to `fury`; `workspace-fury/BOOTSTRAP.md` has been removed so Telegram follows the seeded identity and memory path.
+- `fury` is router-only; it should not write content or post to LinkedIn. `loki` owns draft-and-post workflows, including `linkedin_post`.
 - Mem0 uses local Ollama (`nomic-embed-text`, `llama3.2:3b`) and Qdrant collection `mem0_768d`.
 - Mem0 Qdrant secret is loaded from `/etc/openclaw/mem0.env` via a systemd drop-in.
 - Agent memory namespaces are logical, not separate Qdrant collections: the live store is shared `mem0_768d` with `user_id` values like `poovi:agent:oracle`.
@@ -85,10 +86,13 @@ All automation and remote commands use `codex_agent_agent`. See `local/OPS_USER.
 - **Backups**: PBS job covers VMs 100–104. LXC 106 (Jellyfin) is NOT in the scheduled job — add it (see REMEDIATION_CHECKLIST.md).
 - **Database ports 5432/3306/27017** are currently exposed on 0.0.0.0. Firewall/bind hardening is deferred (tracked in REMEDIATION_CHECKLIST.md).
 
-## Open Issues (as of 2026-05-01)
+## Open Issues (as of 2026-05-03)
 
 See `local/REMEDIATION_CHECKLIST.md` for full details:
-1. No current OpenClaw-specific blockers remain in the observability path; Grafana Qdrant dashboard `qdrant_prom_only_divakar` is now imported and live on the runner.
+1. `sqlserver` deferred — disabled via compose profile on docker-host-01; recovery planned
+2. LXC 106 (jellyfin-01) missing from Proxmox backup job — current job covers VMs 100–104 only
+3. Database ports 5432/3306/27017 exposed on 0.0.0.0 — bind hardening deferred
+4. No current OpenClaw blockers remain in the live memory/routing path; `fury` routes only and `loki` owns LinkedIn drafting/posting
 
 ## Storage
 
