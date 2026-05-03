@@ -128,7 +128,7 @@ Important paths:
 - Agent instructions: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
 - Telegram route: `fury` is explicitly bound to `telegram` account `default`; `workspace-fury/BOOTSTRAP.md` should be absent after seeding, and `IDENTITY.md`, `USER.md`, and `MEMORY.md` should be present in the workspace.
 - Agent split for publishing: `fury` only routes; `loki` owns LinkedIn drafting and posting via `linkedin_post`.
-- Terminal bridge for testing: `scripts/openclaw_send.sh` sends a prompt from your terminal into the live OpenClaw Telegram ingress. It auto-discovers the latest Telegram target for `fury` unless you pass `--target` explicitly. Use `scripts/openclaw_session_latest.sh` to inspect the newest session for an agent from terminal.
+- Terminal bridge for testing: `scripts/openclaw_send.sh` sends a prompt from your terminal into the live OpenClaw Telegram ingress. It auto-discovers the latest Telegram target for `fury` unless you pass `--target` explicitly. Use `scripts/openclaw_session_latest.sh` to inspect the newest session for an agent, and `scripts/openclaw_session_follow.sh` to wait for the next update and print a one-line summary.
 - Memory health script: `/usr/local/bin/memory_health.sh`
 - Memory health cron: `/etc/cron.d/openclaw-memory-health`
 
