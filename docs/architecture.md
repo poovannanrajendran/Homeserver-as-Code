@@ -7,9 +7,10 @@
 
 ## Logical Workloads
 - `docker-host-01`: shared Compose services
-- `automation-runner-01`: scheduled Python workloads and dedicated data stores
-- `ai-node-01`: Ollama + Open WebUI
-- `media-01`: Jellyfin/Plex
+- `automation-runner-01`: scheduled Python workloads, Memex runner API, n8n, observability stack
+- `ai-node-01`: OpenClaw gateway, Ollama, Open WebUI, Mem0 memory integration, Discord channel runtime
+- `docker-host-01`: includes Qdrant in the databases stack for OpenClaw/Memex memory
+- `media-01`: Jellyfin/Plex (Proxmox LXC container; Jellyfin runs native, not Docker)
 - `pbs-01`: Proxmox Backup Server
 
 ## Network (Redacted Example)
@@ -22,3 +23,9 @@ Use documentation ranges in public docs:
 - Private-by-default via Tailscale
 - No router port forwarding required
 - Tighten LAN admin exposure after validation
+
+## OpenClaw Channels
+- Telegram remains the primary ingress channel for broad smoke tests.
+- Discord is now enabled on `ai-node-01` through the official `@openclaw/discord` plugin.
+- Current live Discord test guild is allowlisted for `poovannan's server` and routes the `#openclaw_d` channel to `fury` via top-level `bindings[]`.
+- Discord is configured from `~/.env` on `ai-node-01` using `DISCORD_BOT_TOKEN`; the token is not stored in the repository.

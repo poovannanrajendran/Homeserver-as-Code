@@ -119,7 +119,7 @@ sudo /usr/local/bin/memory_health.sh
 
 Note:
 - Mem0 namespaces are logical today. The shared Qdrant collection is `mem0_768d`, and agent scoping is carried in payload `user_id` values like `poovi:agent:wayne`.
-- OpenClaw control UI no longer uses browser basic auth on the tailnet path; access is network-only via the OpenClaw gateway config (`gateway.auth.mode = none`, device auth disabled).
+- OpenClaw control UI no longer uses browser basic auth on the tailnet path; access is network-only via the OpenClaw gateway config (`gateway.auth.mode = token`, device auth disabled).
 
 Important paths:
 - OpenClaw config: `/var/lib/openclaw/.openclaw/openclaw.json`
@@ -127,8 +127,15 @@ Important paths:
 - Mem0 env: `/etc/openclaw/mem0.env`
 - Agent instructions: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
 - Telegram route: `fury` is explicitly bound to `telegram` account `default`; `workspace-fury/BOOTSTRAP.md` should be absent after seeding, and `IDENTITY.md`, `USER.md`, and `MEMORY.md` should be present in the workspace.
-- Agent split for publishing: `fury` only routes; `loki` owns LinkedIn drafting and posting via `linkedin_post`.
-- Terminal bridges for testing: `scripts/openclaw_send.sh` sends a prompt to Telegram, `scripts/openclaw_agent_turn.sh` runs a direct agent turn from terminal, `scripts/openclaw_session_latest.sh` inspects the newest session for an agent, and `scripts/openclaw_session_follow.sh` waits for the next update and prints a one-line summary.
+- Agent split for publishing: `fury` only routes; `loki` owns LinkedIn drafting. Publishing is a separate archive step that consumes the draft artifact and stores the successful post to Mem0.
+- LinkedIn flow is now split into two durable steps:
+  - `scripts/openclaw_linkedin_draft.sh` calls `loki` and saves a draft artifact under `output/linkedin/drafts/`
+  - `scripts/openclaw_linkedin_archive.sh` archives a successful publish into Mem0 and saves a published record under `output/linkedin/published/`
+  - The handoff between write and publish is the draft artifact, not chat context
+  - Draft artifacts are stable JSON documents with `artifactType: linkedin_draft`, `schemaVersion`, `id`, `content`, `contentHash`, `prompt`, `source`, and `draftOutput.textPayloads`
+  - Published records use `artifactType: linkedin_published`, keep the same `content` and `contentHash`, add `sourceDraft` for traceability, and record memory outcome under `memory.status`, `memory.archived`, `memory.result`, and `memory.error`
+  - If Mem0/Qdrant is slow or unauthorised, the archive helper still saves the local published record and surfaces the memory failure in the JSON
+- Terminal bridges for testing: `scripts/openclaw_send.sh` sends a prompt to Telegram, `scripts/openclaw_agent_turn.sh` runs a direct agent turn from terminal and auto-falls back to `--local` if the gateway rejects the device identity, `scripts/openclaw_session_latest.sh` inspects the newest session for an agent, and `scripts/openclaw_session_follow.sh` waits for the next update and prints a one-line summary.
 - Memory health script: `/usr/local/bin/memory_health.sh`
 - Memory health cron: `/etc/cron.d/openclaw-memory-health`
 
@@ -155,6 +162,41 @@ Known caveats:
 - The live OpenClaw schema rejects `agents.list[*].plugins`; do not document or apply per-agent Mem0 config overrides until OpenClaw supports them.
 - Mem0 CLI add/search hung during the local Ollama smoke test. Treat Mem0 as connected but not fully auto-capture-verified until a real conversation test passes.
 - Telegram memory validation should use a plain message, then a fresh session recall prompt. If the bot answers like a bootstrap shell, check that `workspace-fury/BOOTSTRAP.md` is gone and the workspace has the seeded `IDENTITY.md`, `USER.md`, and `MEMORY.md` files.
+
+## OpenClaw Discord Channel
+
+Live state on `ai-node-01`:
+- OpenClaw runtime: `2026.5.3`
+- Discord plugin: `@openclaw/discord`
+- Gateway auth: `gateway.auth.mode = token`
+- Discord token source: `DISCORD_BOT_TOKEN` loaded from `~/.env`
+- Discord bot: `@OpenClaw_D`
+- Guild allowlist: `1490345277020704789`
+- Allowlisted user: `841706877473914931`
+- Test channel: `#openclaw_d` (`1500957397512880349`)
+- Route binding: top-level `bindings[]` entry mapping Discord channel `#openclaw_d` to `fury`
+
+Useful commands:
+```bash
+ssh labadmin@192.168.1.24
+set -a; . ~/.env; set +a
+openclaw gateway stop
+openclaw gateway
+openclaw channels status --probe
+openclaw channels list
+openclaw channels resolve --channel discord '#openclaw_d' --json
+openclaw channels logs --channel discord | tail -80
+```
+
+Smoke test:
+- In `#openclaw_d`, mention the bot and send `@OpenClaw_D reply with exactly: ready`.
+- If the route is healthy, the bot should type and reply through the `fury` binding.
+
+Troubleshooting:
+- If `openclaw channels status --probe` reports `secret unavailable`, re-check that `DISCORD_BOT_TOKEN` is exported in the same shell that starts the gateway.
+- If `openclaw gateway` exits with `EADDRINUSE`, kill the stale listener on `127.0.0.1:18789` before restarting.
+- If Discord is connected but `agents` shows `(none)`, the problem is usually a missing top-level `bindings[]` route, not bot auth.
+- Keep the Discord token out of chat and out of the repo. Use `~/.env` or another local secret file instead.
 
 ## Nextcloud: Enable Web Updater
 ```bash

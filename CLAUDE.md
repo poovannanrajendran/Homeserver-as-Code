@@ -64,8 +64,9 @@ Qdrant is part of the `databases` stack:
 - Telegram is configured; WhatsApp is disabled unless explicitly re-enabled.
 - Agents registered: `fury`, `cyborg`, `wayne`, `oracle`, `banner`, `xavier`, `deadpool`, `strange`, `diana`, `loki`, `stark`; `fury` is default.
 - Memory stack: `openclaw-mem0` in OSS mode + `memory-wiki` bridge.
-- Gateway auth is now network-only for the control UI: `gateway.auth.mode = none` and `gateway.controlUi.dangerouslyDisableDeviceAuth = true`; nginx no longer adds a browser basic-auth challenge.
+- Gateway auth is token-based in the live config: `gateway.auth.mode = token`. The control UI is still network-only on the tailnet path; `gateway.controlUi.dangerouslyDisableDeviceAuth = true` remains set and nginx no longer adds a browser basic-auth challenge.
 - Telegram is explicitly routed to `fury`; `workspace-fury/BOOTSTRAP.md` has been removed so Telegram follows the seeded identity and memory path.
+- Discord is enabled through the official `@openclaw/discord` plugin, uses `DISCORD_BOT_TOKEN` from `~/.env`, and routes `#openclaw_d` to `fury` via top-level `bindings[]`.
 - `fury` is router-only; it should not write content or post to LinkedIn. `loki` owns draft-and-post workflows, including `linkedin_post`.
 - Mem0 uses local Ollama (`nomic-embed-text`, `llama3.2:3b`) and Qdrant collection `mem0_768d`.
 - Mem0 Qdrant secret is loaded from `/etc/openclaw/mem0.env` via a systemd drop-in.

@@ -14,7 +14,10 @@ This is the primary navigation page for the **Homeserver-as-Code** documentation
 9. [Vercel Agent Skills for Codex](vercel-agent-skills.md)
 10. [OpenClaw Memory and Second Brain Plan](openclaw-memory-secondbrain-plan.md)
 11. [Gemini-CLI Memex OpenClaw Handoff](gemini-cli-memex-openclaw-handoff.md)
-12. [Agentic Architecture Implementation](agentic-architecture-implementation.md)
+12. [OpenClaw Discord Handoff](openclaw-discord-handoff.md)
+13. [Agentic Architecture Implementation](agentic-architecture-implementation.md)
+14. [Paperclip Operational Status](paperclip-operational-status.md)
+15. [Paperclip Role and Policy Bootstrap](paperclip-role-policy-bootstrap.md)
 
 ## What Each Document Covers
 
@@ -82,12 +85,28 @@ Reference for:
 ## 10) Gemini-CLI Memex OpenClaw Handoff
 Copy-paste handoff for applying the Memex runner/API/ingest fixes in the Memex repository.
 
-## 11) Agentic Architecture Implementation
+## 11) OpenClaw Discord Handoff
+Copy-paste handoff for the live Discord channel setup on `ai-node-01`.
+
+## 12) Agentic Architecture Implementation
 Implementation guide for splitting the system into:
 - Hermes-style execution
 - Paperclip-style governance
-- `docs/paperclip-operational-status.md`
 - phased rollout and validation
+
+## 13) Paperclip Operational Status
+Live state of the Paperclip governance layer:
+- host, port, and health
+- current roles and responsibilities
+- n8n MCP tool integration (web_search, financial_data, qdrant, youtube, social)
+- activation checklist for MCP tools
+
+## 14) Paperclip Role and Policy Bootstrap
+First production role model for Paperclip:
+- role definitions (admin, orchestrator, executor, auditor)
+- policy principles (least privilege, explicit task scopes, approval thresholds, audit)
+- tool allowlists per role
+- first test task specification
 
 ## Contributor Notes
 - Keep this index updated when new docs are added.
