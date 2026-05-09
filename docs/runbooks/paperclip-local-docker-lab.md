@@ -274,6 +274,35 @@ Notes:
 - It then runs `docker compose up -d --build --force-recreate paperclip`.
 - If you change `POSTGRES_*` values after first boot, the database volume may still carry the old credentials. In that case you may need a DB reset or a fresh volume.
 
+## Other Helpers
+
+Single-key env update:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/set-env.sh OPENROUTER_API_KEY sk-or-...
+```
+
+You can also use `KEY=VALUE`:
+
+```bash
+./scripts/set-env.sh OPENROUTER_API_KEY=sk-or-...
+```
+
+Rotate the Paperclip JWT secret:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/rotate-secret.sh
+```
+
+Drop into the lab container shell:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/lab-shell.sh
+```
+
 ## Stop
 
 ```bash
