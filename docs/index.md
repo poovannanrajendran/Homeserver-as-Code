@@ -18,6 +18,8 @@ This is the primary navigation page for the **Homeserver-as-Code** documentation
 13. [Agentic Architecture Implementation](agentic-architecture-implementation.md)
 14. [Paperclip Operational Status](paperclip-operational-status.md)
 15. [Paperclip Role and Policy Bootstrap](paperclip-role-policy-bootstrap.md)
+16. [Paperclip Local Company Handbook](runbooks/paperclip-local-company-handbook.md)
+17. [Paperclip Local Company Usage Guide](runbooks/paperclip-local-company-usage-guide.md)
 
 ## What Each Document Covers
 
@@ -107,6 +109,20 @@ First production role model for Paperclip:
 - policy principles (least privilege, explicit task scopes, approval thresholds, audit)
 - tool allowlists per role
 - first test task specification
+
+## 16) Paperclip Local Company Handbook
+Local Mac reference for:
+- current `Poovi Paper Company` agent layout
+- provider and model recommendations
+- qwen3.5:27b performance note on 24 GB unified memory
+- fallback rules and provider guidance
+
+## 17) Paperclip Local Company Usage Guide
+Practical guide for:
+- agent-by-agent test prompts
+- safe local workflows
+- model choice rules
+- what not to do in the lab
 
 ## Contributor Notes
 - Keep this index updated when new docs are added.

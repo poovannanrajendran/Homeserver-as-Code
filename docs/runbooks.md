@@ -163,6 +163,19 @@ Known caveats:
 - Mem0 CLI add/search hung during the local Ollama smoke test. Treat Mem0 as connected but not fully auto-capture-verified until a real conversation test passes.
 - Telegram memory validation should use a plain message, then a fresh session recall prompt. If the bot answers like a bootstrap shell, check that `workspace-fury/BOOTSTRAP.md` is gone and the workspace has the seeded `IDENTITY.md`, `USER.md`, and `MEMORY.md` files.
 
+## Paperclip Local Company
+
+Use the local Paperclip company docs for Mac-side model planning and test prompts:
+
+- [Paperclip Local Company Handbook](runbooks/paperclip-local-company-handbook.md)
+- [Paperclip Local Company Usage Guide](runbooks/paperclip-local-company-usage-guide.md)
+
+Recommended reading:
+
+1. Read the handbook first for the provider/model matrix and the qwen3.5:27b benchmark result.
+2. Read the usage guide for safe prompts and a first end-to-end test.
+3. Keep the local company separate from the production Paperclip control plane on `automation-runner-01`.
+
 ## OpenClaw Discord Channel
 
 Live state on `ai-node-01`:
