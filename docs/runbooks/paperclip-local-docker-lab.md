@@ -155,11 +155,12 @@ Recommended auth model:
   - API key auth: set `ANTHROPIC_API_KEY` in `stacks/paperclip-lab/.env`
   - interactive auth: run `docker compose exec paperclip claude`, then use `/login`
 - Codex:
-  - API key auth: set `OPENAI_API_KEY` in `stacks/paperclip-lab/.env`
-  - then run `docker compose exec paperclip codex`
+  - device auth: run `docker compose exec paperclip codex login --device-auth`
+  - API key auth: set `OPENAI_API_KEY` in `stacks/paperclip-lab/.env` if you prefer token-based auth for non-interactive use
 - Gemini CLI:
   - API key auth: set `GEMINI_API_KEY` in `stacks/paperclip-lab/.env`
   - or run `docker compose exec paperclip gemini` and follow the Google login flow
+  - subscription/OAuth login is detected from the cached `~/.gemini/oauth_creds.json` state
 
 Notes:
 
