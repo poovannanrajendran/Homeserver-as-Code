@@ -296,11 +296,32 @@ cd stacks/paperclip-lab
 ./scripts/rotate-secret.sh
 ```
 
+Backup the lab DB and then rotate the JWT secret:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/backup-and-rotate.sh
+```
+
 Drop into the lab container shell:
 
 ```bash
 cd stacks/paperclip-lab
 ./scripts/lab-shell.sh
+```
+
+Open the lab in your Mac browser:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/open-lab.sh
+```
+
+Rebuild only when paperclip-relevant files changed:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/sync-paperclip.sh
 ```
 
 ## Stop
