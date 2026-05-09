@@ -1,0 +1,81 @@
+schema: paperclip/v1
+agents:
+  chief-of-staff:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-code-local
+    budget:
+      dailyLimit: 2.00
+      currency: USD
+  researcher:
+    adapter:
+      type: codex_local
+      config:
+        model: codex-local
+    budget:
+      dailyLimit: 2.00
+      currency: USD
+  lab-engineer:
+    adapter:
+      type: codex_local
+      config:
+        model: codex-local
+    budget:
+      dailyLimit: 2.00
+      currency: USD
+  content-strategist:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-code-local
+    budget:
+      dailyLimit: 1.00
+      currency: USD
+  career-strategist:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-code-local
+    budget:
+      dailyLimit: 1.00
+      currency: USD
+  growth-operator:
+    adapter:
+      type: codex_local
+      config:
+        model: codex-local
+    budget:
+      dailyLimit: 1.00
+      currency: USD
+  finance-analyst:
+    adapter:
+      type: codex_local
+      config:
+        model: codex-local
+    budget:
+      dailyLimit: 1.00
+      currency: USD
+  archivist:
+    adapter:
+      type: codex_local
+      config:
+        model: codex-local
+    budget:
+      dailyLimit: 1.00
+      currency: USD
+permissions:
+  chief-of-staff:
+    allowed-tools: [qdrant_search, local_mac_mcp, n8n_remote]
+  researcher:
+    allowed-tools: [web_search, qdrant_search, local_mac_mcp, n8n_remote]
+  lab-engineer:
+    allowed-tools: [local_mac_mcp, docker_lab_status, ollama_local]
+  content-strategist:
+    require-approval: true
+  growth-operator:
+    require-approval: true
+  finance-analyst:
+    require-approval: true
+  archivist:
+    allowed-tools: [local_mac_mcp, qdrant_search]

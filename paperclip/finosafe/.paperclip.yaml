@@ -1,0 +1,35 @@
+schema: paperclip/v1
+agents:
+  strategist:
+    adapter:
+      type: openai
+      config:
+        model: gpt-5.4
+  alpha-researcher:
+    adapter:
+      type: deepseek
+      config:
+        model: deepseek-reasoner
+    budget:
+      dailyLimit: 10.00
+      currency: USD
+  viral-writer:
+    adapter:
+      type: anthropic
+      config:
+        model: claude-4-6-sonnet
+    budget:
+      dailyLimit: 5.00
+      currency: USD
+  growth-hacker:
+    adapter:
+      type: google
+      config:
+        model: gemini-3.1-flash
+permissions:
+  alpha-researcher:
+    allowed-tools: [web_search, financial_data_api, qdrant_search]
+  viral-writer:
+    require-approval: true
+  growth-hacker:
+    allowed-tools: [youtube_api, social_cross_post]

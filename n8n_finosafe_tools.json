@@ -1,0 +1,123 @@
+{
+  "name": "Paperclip MCP Tools (FinOSafe)",
+  "nodes": [
+    {
+      "parameters": {
+        "toolName": "web_search",
+        "toolDescription": "Search the web for real-time news or data.",
+        "toolSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"query\": {\n      \"type\": \"string\",\n      \"description\": \"The search query\"\n    }\n  },\n  \"required\": [\"query\"]\n}"
+      },
+      "id": "e1f8e123-1111-4a11-b111-c111d111e111",
+      "name": "MCP Trigger: web_search",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "api_key",
+              "value": "YOUR_TAVILY_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e1f8e123-2222-4a22-b222-c222d222e222",
+      "name": "HTTP Request (Tavily)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "toolName": "financial_data_api",
+        "toolDescription": "Fetch live or historical financial data for a ticker symbol.",
+        "toolSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"symbol\": {\n      \"type\": \"string\",\n      \"description\": \"Ticker symbol (e.g., BTC-USD, NDX)\"\n    }\n  },\n  \"required\": [\"symbol\"]\n}"
+      },
+      "id": "e1f8e123-4444-4a44-b444-c444d444e444",
+      "name": "MCP Trigger: financial_data",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "toolName": "qdrant_search",
+        "toolDescription": "Search the Memex Qdrant vector database for institutional insurance context.",
+        "toolSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"topic\": {\n      \"type\": \"string\",\n      \"description\": \"The topic to search for (e.g., 'Cyber insurance claims 2025')\"\n    }\n  },\n  \"required\": [\"topic\"]\n}"
+      },
+      "id": "e1f8e123-6666-4a66-b666-c666d666e666",
+      "name": "MCP Trigger: qdrant",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "toolName": "youtube_api",
+        "toolDescription": "Draft or update YouTube video metadata.",
+        "toolSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\n      \"type\": \"string\",\n      \"description\": \"Video title\"\n    },\n    \"description\": {\n      \"type\": \"string\",\n      \"description\": \"Video description\"\n    }\n  },\n  \"required\": [\"title\", \"description\"]\n}"
+      },
+      "id": "e1f8e123-8888-4a88-b888-c888d888e888",
+      "name": "MCP Trigger: youtube",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "toolName": "social_cross_post",
+        "toolDescription": "Draft and post content to X, LinkedIn, or Discord.",
+        "toolSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"platform\": {\n      \"type\": \"string\",\n      \"enum\": [\"X\", \"LinkedIn\", \"Discord\"]\n    },\n    \"content\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"platform\", \"content\"]\n}"
+      },
+      "id": "e1f8e123-aaaa-4aaa-baaa-caaadcaaaeea",
+      "name": "MCP Trigger: social",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1000
+      ]
+    }
+  ],
+  "connections": {
+    "MCP Trigger: web_search": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Tavily)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
