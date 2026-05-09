@@ -142,6 +142,13 @@ cd stacks/paperclip-lab
 ./scripts/show-env.sh
 ```
 
+Check provider auth status:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/auth-status.sh
+```
+
 Recommended auth model:
 
 - Claude Code:
@@ -159,6 +166,14 @@ Notes:
 - Credentials live under `/home/paperclip` inside the container, so they persist with the `paperclip_locallab_home` volume.
 - The image already includes an `xdg-open` shim, so browser-login prompts print a URL instead of crashing inside Linux.
 - If you use browser auth, open the printed URL on your Mac and finish the login there.
+- If you recreate the lab, `update-env.sh` now snapshots and restores provider auth automatically.
+
+If you need to re-run logins after a reset, use:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/login-all.sh
+```
 
 ## Status
 
