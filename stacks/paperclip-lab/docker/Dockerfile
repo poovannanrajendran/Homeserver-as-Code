@@ -3,7 +3,20 @@ FROM node:22-bookworm-slim
 ARG PAPERCLIP_VERSION=latest
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl gosu \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gosu \
+    git \
+    jq \
+    psmisc \
+    procps \
+    python3 \
+    python3-venv \
+    rsync \
+    tar \
+    unzip \
+    zip \
   && rm -rf /var/lib/apt/lists/*
 
 RUN printf '#!/usr/bin/env sh\nprintf "Open this URL on the Docker host: %s\\n" "$1" >&2\nexit 0\n' > /usr/local/bin/xdg-open \

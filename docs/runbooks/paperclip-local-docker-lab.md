@@ -112,6 +112,11 @@ The lab image installs these commands globally so they are available anywhere in
 - `claude`
 - `gemini`
 - `codex`
+- `python3`
+- `jq`
+- `git`
+- `zip` / `unzip`
+- `rsync`
 
 Verify they are present:
 
@@ -230,6 +235,27 @@ cd stacks/paperclip-lab
 Backups are written to:
 
 `stacks/paperclip-lab/backups`
+
+## Update `.env` and Recreate the Lab
+
+Use the helper script to change a value in `.env` and immediately rebuild/recreate the `paperclip` service:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/update-env.sh PAPERCLIP_THEME_NAME paperclip-locallab-blue
+```
+
+Multiple updates in one call are supported:
+
+```bash
+./scripts/update-env.sh PAPERCLIP_PUBLIC_URL http://localhost:3102 OPENAI_API_KEY sk-...
+```
+
+Notes:
+
+- The script updates `stacks/paperclip-lab/.env` on the host.
+- It then runs `docker compose up -d --build --force-recreate paperclip`.
+- If you change `POSTGRES_*` values after first boot, the database volume may still carry the old credentials. In that case you may need a DB reset or a fresh volume.
 
 ## Stop
 
