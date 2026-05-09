@@ -125,6 +125,13 @@ cd stacks/paperclip-lab
 ./scripts/provider-versions.sh
 ```
 
+Show the current lab env values without leaking secrets:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/show-env.sh
+```
+
 Recommended auth model:
 
 - Claude Code:
