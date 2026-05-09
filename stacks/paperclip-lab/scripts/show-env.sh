@@ -41,6 +41,9 @@ rows = [
     ("ANTHROPIC_API_KEY", "set" if data.get("ANTHROPIC_API_KEY") else "unset"),
     ("OPENAI_API_KEY", "set" if data.get("OPENAI_API_KEY") else "unset"),
     ("GEMINI_API_KEY", "set" if data.get("GEMINI_API_KEY") else "unset"),
+    ("OPENROUTER_API_KEY", "set" if data.get("OPENROUTER_API_KEY") else "unset"),
+    ("X_API_KEY", "set" if data.get("X_API_KEY") else "unset"),
+    ("X_API_SECRET", "set" if data.get("X_API_SECRET") else "unset"),
 ]
 
 width = max(len(name) for name, _ in rows)

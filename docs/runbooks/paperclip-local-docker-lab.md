@@ -89,6 +89,9 @@ Key variables:
 | `ANTHROPIC_API_KEY` | Optional Claude Code API auth |
 | `OPENAI_API_KEY` | Optional Codex CLI API auth |
 | `GEMINI_API_KEY` | Optional Gemini CLI API auth |
+| `OPENROUTER_API_KEY` | Optional OpenRouter auth for provider routing |
+| `X_API_KEY` | Optional X/Twitter API key for future publishing bridges |
+| `X_API_SECRET` | Optional X/Twitter API secret for future publishing bridges |
 
 Do not commit `.env`.
 
