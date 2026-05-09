@@ -273,6 +273,7 @@ Notes:
 - The script updates `stacks/paperclip-lab/.env` on the host.
 - It then runs `docker compose up -d --build --force-recreate paperclip`.
 - If you change `POSTGRES_*` values after first boot, the database volume may still carry the old credentials. In that case you may need a DB reset or a fresh volume.
+- Before recreating the container, the script snapshots the CLI auth dirs and restores them after restart so `claude`, `gemini`, and `codex` stay logged in across env edits.
 
 ## Other Helpers
 

@@ -23,6 +23,11 @@ fi
 tmp_file="$(mktemp)"
 trap 'rm -f "$tmp_file"' EXIT
 
+auth_backup=""
+if docker compose ps -q paperclip >/dev/null 2>&1; then
+  auth_backup="$(./scripts/backup-cli-auth.sh 2>/dev/null || true)"
+fi
+
 python3 - "$@" > "$tmp_file" <<'PY'
 import pathlib
 import sys
@@ -56,4 +61,7 @@ mv "$tmp_file" .env
 echo "Updated .env"
 
 docker compose up -d --build --force-recreate paperclip
+if [ -n "$auth_backup" ] && [ -f "$auth_backup" ]; then
+  ./scripts/restore-cli-auth.sh "$auth_backup"
+fi
 docker compose ps paperclip
