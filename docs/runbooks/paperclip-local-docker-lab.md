@@ -128,6 +128,13 @@ cd stacks/paperclip-lab
 ./scripts/provider-versions.sh
 ```
 
+Run the lab doctor:
+
+```bash
+cd stacks/paperclip-lab
+./scripts/doctor.sh
+```
+
 Show the current lab env values without leaking secrets:
 
 ```bash
