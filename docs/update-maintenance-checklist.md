@@ -199,9 +199,11 @@ After each boot or reboot, check:
 ## Final Maintenance Verification
 Last completed maintenance pass:
 - Proxmox host `pve`: updated and rebooted
-- `docker-host-01`: updated and Docker daemon restarted
+- `docker-host-01`: updated, rebooted, and Docker daemon restarted
 - `automation-runner-01`: updated and rebooted
-- `ai-node-01`: checked, no reboot required
+- `ai-node-01`: updated, checked, no reboot required
+- `pbs-01`: updated and rebooted
+- `jellyfin-01`: updated, mount restored, and container restarted
 
 Verified healthy after boot:
 - Proxmox host reachable and guest inventory restored
@@ -210,6 +212,8 @@ Verified healthy after boot:
 - `youtube-sync.timer` active on the runner
 - `openclaw-gateway.service` active on `ai-node-01`
 - Proxmox backup job still present and scheduled
+- `memex-runner.service` active on `automation-runner-01`
+- `n8n` recovered after environment fix on `docker-host-01`
 
 Guests intentionally left stopped:
 - `102` `ubuntu-dev-01`
@@ -221,6 +225,25 @@ If `automation-runner-01` reboots during the monthly job:
 - `monthly-maintenance-resume.timer` runs on boot
 - the resume service checks for the marker and calls the main script with `--resume`
 - the state is cleared after the final summary is sent
+
+## Recommended Future Order
+For the next full-stack maintenance window, use this sequence:
+
+1. Check current health and record uptime, timers, and running containers.
+2. Upgrade the Proxmox host first if host packages or kernel updates are pending.
+3. Reboot the Proxmox host if the update path requires it.
+4. Upgrade `docker-host-01`, then wait for Docker and compose stacks to settle.
+5. Upgrade `automation-runner-01`, then verify `memex-runner` and timers.
+6. Upgrade `ai-node-01`, then verify `openclaw-gateway`.
+7. Upgrade `pbs-01`, then confirm the guest agent returns and the reboot marker is cleared.
+8. Upgrade `jellyfin-01`, then confirm the host mount and container status.
+9. Re-run package checks on every host and guest until all counts are `0`.
+10. Re-run service checks for systemd units, cron schedules, and container health.
+
+## Maintenance Report
+See the dated report for the latest full pass:
+
+- [Homeserver Maintenance Report (2026-05-21)](runbooks/homeserver-maintenance-report-2026-05-21.md)
 
 ## Schedule Drift Guard
 There is also a daily schedule integrity check on `automation-runner-01`.
