@@ -295,6 +295,7 @@ sudo cat /srv/data/platform/jenkins/secrets/initialAdminPassword
 ```
 
 ## n8n Uses Postgres Check
+This check applies to the `docker-host-01` platform n8n.
 ```bash
 docker exec -it n8n env | grep '^DB_TYPE='
 ```

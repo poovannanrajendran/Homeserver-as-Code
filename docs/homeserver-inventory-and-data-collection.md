@@ -110,10 +110,10 @@ This page is the working reference for the homeserver environment. It captures:
 - Health check: TCP probe against `poovannnan.6r4o1.mongodb.net:27017`
 
 ### n8n database
-- Backend: SQLite
-- Host path: `/opt/automation/n8n/data/database.sqlite`
-- Container path: `/home/node/.n8n/database.sqlite`
-- Notes: no Postgres/MySQL backend configured in the observed `.env`
+- Backend: PostgreSQL (`DB_TYPE=postgresdb`)
+- Host path: managed by the `postgres` service in the platform stack
+- Container path: `/home/node/.n8n`
+- Notes: this describes the `docker-host-01` platform n8n; the Paperclip n8n instance on `automation-runner-01` remains a separate local SQLite-backed deployment
 
 ### RAG / AI support databases
 - RAG Postgres: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
