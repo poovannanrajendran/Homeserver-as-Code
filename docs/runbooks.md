@@ -176,10 +176,27 @@ Recommended reading:
 2. Read the usage guide for safe prompts and a first end-to-end test.
 3. Keep the local company separate from the production Paperclip control plane on `automation-runner-01`.
 
+## Paperclip FinOSafe Remote Company
+
+Use these docs for the remote FinOSafe company on `automation-runner-01` only:
+
+- [FinOSafe Handoff](runbooks/paperclip-finosafe-handoff.md)
+- [FinOSafe Recovery and Validation Runbook](runbooks/paperclip-finosafe-recovery-validation.md)
+- [FinOSafe PRD](products/prd-finosafe-paperclip.md)
+- [FinOSafe Blockers and Fixes](products/blockers-finosafe-paperclip.md)
+
+Important live paths:
+
+- Paperclip URL: `http://192.168.1.30:3101`
+- n8n URL: `http://192.168.1.30:5678`
+- FinOSafe working directory: `/home/labadmin/paperclip-company-finosafe`
+- Live instance: `/home/labadmin/.paperclip-worktrees/instances/finosafe-live`
+- n8n MCP proxy: `/home/labadmin/bin/finosafe-n8n-mcp.py`
+
 ## OpenClaw Discord Channel
 
 Live state on `ai-node-01`:
-- OpenClaw runtime: `2026.5.3`
+- OpenClaw runtime: `2026.6.8 (844f405)`
 - Discord plugin: `@openclaw/discord`
 - Gateway auth: `gateway.auth.mode = token`
 - Discord token source: `DISCORD_BOT_TOKEN` loaded from `~/.env`

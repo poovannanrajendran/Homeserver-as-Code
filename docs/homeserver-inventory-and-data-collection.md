@@ -24,7 +24,7 @@ This page is the working reference for the homeserver environment. It captures:
 - LAN IP: `192.168.1.20`
 - Tailscale IP: `100.81.51.70`
 - Role: main Docker/Compose workload host
-- Notable services: mail relay, Nextcloud, Jenkins, n8n, Grafana source services, databases, monitoring helpers
+- Notable services: mail relay, Nextcloud, Jenkins, n8n, Grafana source services, databases, monitoring helpers, Qdrant
 
 ### AI Node VM
 - VMID: `101`
@@ -37,7 +37,7 @@ This page is the working reference for the homeserver environment. It captures:
 ### Automation Runner VM
 - VM name: `automation-runner-01`
 - LAN IP: `192.168.1.30`
-- Role: observability, dashboarding, host health collection, automation runner
+- Role: observability, dashboarding, host health collection, automation runner, Memex runner API
 - Grafana URL: `http://192.168.1.30:3000`
 - Prometheus URL: `http://192.168.1.30:9090`
 - Alertmanager URL: `http://192.168.1.30:9093`
@@ -45,16 +45,21 @@ This page is the working reference for the homeserver environment. It captures:
 ## OpenClaw / Jarvis
 
 ### Access
-- Web UI: `https://ai-node-01.tail4bbda6.ts.net:18790`
+- Web UI: `https://ai-node-01.tail4bbda6.ts.net`
 - Gateway host: `ai-node-01`
 - Chat/Control UI: OpenClaw dashboard and chat interface on the AI node
+- Current runtime: `2026.6.8 (844f405)`
+- Gateway loopback: `127.0.0.1:18789`
+- Runtime home: `/var/lib/openclaw`
+- Config file: `/var/lib/openclaw/.openclaw/openclaw.json`
 
 ### Connected channels
 - Telegram: configured and running
-- WhatsApp: linked for family use
+- WhatsApp: disabled unless explicitly re-enabled
 
 ### Provider configuration
-- Default chat provider: `openrouter/openrouter/free` with a small fallback model chain
+- Default agent: `fury`
+- Default chat provider: `google/gemini-3-flash-preview` with fallback model chain
 - Backup providers configured in the environment:
   - OpenRouter
   - DeepSeek
@@ -63,11 +68,22 @@ This page is the working reference for the homeserver environment. It captures:
   - xAI
   - Ollama for local models
 
+### Memory and agents
+- Agents registered: `fury`, `cyborg`, `wayne`, `oracle`, `banner`, `xavier`, `deadpool`, `strange`, `diana`, `loki`, `stark`
+- Agent instruction files: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
+- Memory plugins: `openclaw-mem0` and `memory-wiki`
+- Mem0 mode: open-source
+- Mem0 local models: Ollama `nomic-embed-text` for embeddings and `llama3.2:3b` for extraction
+- Mem0 vector store: Qdrant on `192.168.1.20:6333`, collection `mem0_768d`
+- Mem0 Qdrant secret: `/etc/openclaw/mem0.env`, loaded by `openclaw-gateway.service`
+- Per-agent config overrides are not accepted by the live OpenClaw schema. Use Mem0 `--agent-id` namespaces where supported.
+- Memex MCP server: `memex`, forced-command SSH to `automation-runner-01`
+
 ### Operational notes
 - Heartbeat was tuned to use a smaller local model when practical
-- WhatsApp pairing may require restart after linking
 - OpenClaw gateway access requires pairing and a secure browser context for the control UI
 - Google Workspace CLI is installed on `ai-node-01` for Gmail and related integrations
+- Use `sudo -u openclaw -H sh -lc '<command>'` for OpenClaw filesystem operations; do not rely on `~` from the `labadmin` shell.
 
 ## Databases
 
@@ -101,7 +117,12 @@ This page is the working reference for the homeserver environment. It captures:
 
 ### RAG / AI support databases
 - RAG Postgres: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
-- RAG Qdrant: `http://localhost:6333`
+- Qdrant: `http://192.168.1.20:6333`
+- Qdrant health: `/healthz` and `/readyz`; `/health` returns 404 on Qdrant 1.17.1
+- Qdrant API key: `QDRANT_API_KEY` in `/srv/stacks/databases/.env`
+- Qdrant collections in use:
+  - `mem0_768d` — OpenClaw Mem0 semantic memory
+  - `memex-knowledge` — Memex payload-only cache, 7,478 points
 
 ## Docker and Compose Workloads on docker-host-01
 
