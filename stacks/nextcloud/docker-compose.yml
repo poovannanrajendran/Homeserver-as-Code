@@ -10,11 +10,16 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      MYSQL_HOST: mariadb
+      # If MariaDB runs in a separate compose project, "mariadb" won't resolve.
+      # Set NEXTCLOUD_MYSQL_HOST=host.docker.internal (or the DB host IP/DNS) in stacks/nextcloud/.env.
+      MYSQL_HOST: ${NEXTCLOUD_MYSQL_HOST:-mariadb}
       MYSQL_DATABASE: ${NEXTCLOUD_DB_NAME}
       MYSQL_USER: ${NEXTCLOUD_DB_USER}
       MYSQL_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
       REDIS_HOST: redis
+    extra_hosts:
+      # For Linux docker hosts; allows using host.docker.internal as the DB host.
+      - "host.docker.internal:host-gateway"
     volumes:
       - /srv/data/nextcloud/html:/var/www/html
       - /mnt/nextcloud-data:/var/www/html/data

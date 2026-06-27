@@ -24,7 +24,7 @@ This page is the working reference for the homeserver environment. It captures:
 - LAN IP: `192.168.1.20`
 - Tailscale IP: `100.81.51.70`
 - Role: main Docker/Compose workload host
-- Notable services: mail relay, Nextcloud, Jenkins, n8n, Grafana source services, databases, monitoring helpers, Qdrant
+- Notable services: mail relay, Nextcloud, Jenkins, n8n, Children Email Digest, Grafana source services, databases, monitoring helpers, Qdrant
 
 ### AI Node VM
 - VMID: `101`
@@ -115,6 +115,30 @@ This page is the working reference for the homeserver environment. It captures:
 - Container path: `/home/node/.n8n`
 - Notes: this describes the `docker-host-01` platform n8n; the Paperclip n8n instance on `automation-runner-01` remains a separate local SQLite-backed deployment
 
+### Children Email Digest database
+- Database: `children_email_digest`
+- PostgreSQL role: `ced_app`
+- PostgreSQL container: `postgres` on `docker-host-01`
+- Schema: `ced`
+- Connectivity: the application resolves `postgres:5432` over external Docker network `backend-net`
+- Data: inbound email metadata/body storage, analyses, actions, payments, attachments, run history, AI API audit, delivery audit, balances, and learning filters
+- Logical backup: `/srv/backups/postgres/postgres/<generation>/children_email_digest.dump`
+- Logical backup schedule: included in the all-database dump at `01:30`
+- Logical backup retention: same GFS policy as PBS (`keep-last=7`, `keep-weekly=4`, `keep-monthly=6`)
+- Logical backup log: `/var/log/postgres-backup.log` with weekly rotation
+- VM backup: VM `100` is included in the daily `02:15` PBS snapshot job
+
+### PostgreSQL logical backup coverage
+- `docker-host-01`, container `postgres`: `children_email_digest`, `n8n`, `paperclip`, `postgres`, `youtube_channel_audit`, `youtube_channel_historic`, and `youtube_liked_videos`
+- `automation-runner-01`, container `automation-postgres`: `automation`, `homeserver_db`, `lloyds_digest`, `memex`, and `postgres`
+- `automation-runner-01`, container `compose-postgres-1`: `poovi_ops_platform` and `postgres`
+- Template databases are excluded; every connectable non-template database and each container's PostgreSQL roles are dumped
+- Dump root on each VM: `/srv/backups/postgres/<container>/<generation>/`
+- Retention: latest 7 generations, latest generation from 4 ISO weeks, and latest generation from 6 calendar months
+- VM `100` and VM `103` are both included in the nightly PBS snapshot job
+- PBS datastore `pbs-store` is mounted from the external 4 TB disk at `/mnt/usb-4tb/pbs-datastore`
+- The disk is external storage but remains mounted and online; it is not an air-gapped/offline copy
+
 ### RAG / AI support databases
 - RAG Postgres: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
 - Qdrant: `http://192.168.1.20:6333`
@@ -143,6 +167,23 @@ This page is the working reference for the homeserver environment. It captures:
 - `cadvisor`
 - `prometheus`
 - `node-exporter`
+- `ced-app`
+
+### Children Email Digest
+- Project directory: `/opt/children-email-digest`
+- Compose file: `/opt/children-email-digest/docker-compose.yml`
+- Container/image: `ced-app` / `children-email-digest:latest`
+- Runtime user for deployment: `ced-deploy`; `labadmin` retains host administration through sudo
+- Restart policy: `unless-stopped`
+- Docker network: `backend-net`
+- Persistent mounts: `config` read-only, `secrets` read-only, and `data` read-write from the project directory
+- No frontend port is currently published; the production container runs the cron daemon
+- Schedule: `07:30`, `10:00`, `13:00`, and `19:00` in `Europe/London`
+- Dependencies: shared PostgreSQL, Gmail API/OAuth, Gemini by default, optional Claude/OpenAI, Gmail API send, and `smtp-relay` fallback
+- Operational logs: `docker logs ced-app`; cron output is redirected to container stdout/stderr
+- Docker log storage: JSON-file driver under `/var/lib/docker/containers/<container-id>/`
+- Application output: `/opt/children-email-digest/output`; latest digest compatibility copy: `/opt/children-email-digest/data/digest.html`
+- Audit sources: PostgreSQL tables `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
 
 ### Important ports
 - Portainer: `9443`
@@ -261,6 +302,13 @@ This page is the working reference for the homeserver environment. It captures:
 ### Host health collector cron
 - Runs every 5 minutes
 - Collects Proxmox, VM, DB, disk, and cron inventory data
+
+### Children Email Digest schedules
+- Pipeline cron runs inside `ced-app` at `07:30`, `10:00`, `13:00`, and `19:00` Europe/London.
+- All PostgreSQL databases on `docker-host-01` are dumped at `01:30` via `/etc/cron.d/postgres-backup`.
+- All PostgreSQL databases on `automation-runner-01` are dumped at `01:40` via `/etc/cron.d/postgres-backup`.
+- Backup execution is logged to `/var/log/postgres-backup.log` on each host.
+- The PBS snapshot of VM `100` runs at `02:15` and captures the application files, PostgreSQL volume, and the completed logical dump.
 
 ### OpenClaw updates
 - OpenClaw update schedule was tuned for early morning execution

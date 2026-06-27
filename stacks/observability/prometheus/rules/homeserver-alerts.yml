@@ -1,0 +1,42 @@
+groups:
+  - name: homeserver-health-alerts
+    rules:
+      - alert: ProxmoxDown
+        expr: max(obs_proxmox_https_up) < 1
+        for: 3m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Proxmox UI/HTTPS appears down"
+          description: "obs_proxmox_https_up is 0 for at least 3 minutes."
+
+      - alert: VmUnreachable
+        expr: min(obs_ping_up{target=~"192.168.1.20|192.168.1.24|192.168.1.30"}) < 1
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "One or more VMs unreachable by ping"
+          description: "At least one VM (100/101/103) failed ping checks for 5 minutes."
+
+      - alert: DatabaseCheckFail
+        expr: min(obs_postgres_query_ok{db=~"lloyds_digest_local|memex_local|youtube_liked_videos_remote|supabase_postgres"}) < 1
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database check failing"
+          description: "At least one configured Postgres DB check is failing for 5 minutes."
+
+      - alert: DiskUsageHigh
+        expr: max(obs_filesystem_used_percent{mount=~"/|/var"}) >= 85
+        for: 10m
+        labels:
+          severity: critical
+          category: storage
+        annotations:
+          summary: "Disk usage high on runner"
+          description: "Filesystem usage is >= 85% on / or /var for at least 10 minutes."

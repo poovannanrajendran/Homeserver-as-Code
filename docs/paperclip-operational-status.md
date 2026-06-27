@@ -11,9 +11,25 @@ Paperclip is now operating as the governance/control plane on `automation-runner
 - Bootstrap: complete
 - Hostname allowlist: configured for `192.168.1.30`
 - Storage: embedded Postgres + local disk
+- Live FinOSafe instance: `finosafe-live`
+- Live FinOSafe company: `FinOSafe Media Group` / `FINAA`
+- Live FinOSafe company ID: `2dae29b7-aa61-48e5-8ead-35c540c9f3a6`
 - Authenticated CLI tools available on the host:
   - `codex`
   - `gemini`
+
+## Live Paths
+
+| Purpose | Path |
+| --- | --- |
+| FinOSafe working directory | `/home/labadmin/paperclip-company-finosafe` |
+| Paperclip service | `/home/labadmin/.config/systemd/user/paperclip.service` |
+| Paperclip service override | `/home/labadmin/.config/systemd/user/paperclip.service.d/override.conf` |
+| FinOSafe instance data | `/home/labadmin/.paperclip-worktrees/instances/finosafe-live` |
+| FinOSafe MCP config | `/home/labadmin/.paperclip-worktrees/instances/finosafe-live/mcp.json` |
+| FinOSafe Codex home | `/home/labadmin/.paperclip-worktrees/instances/finosafe-live/companies/2dae29b7-aa61-48e5-8ead-35c540c9f3a6/codex-home` |
+| FinOSafe n8n MCP proxy | `/home/labadmin/bin/finosafe-n8n-mcp.py` |
+| n8n database | `/opt/automation/n8n/data/database.sqlite` |
 
 ## Current Responsibilities
 
@@ -91,27 +107,39 @@ See:
 Paperclip's research and data agents are exposed via an n8n MCP Server workflow.
 
 - Workflow name: `Paperclip MCP Tools (FinOSafe)`
+- Workflow ID: `OJVWHJzekaQPzihW`
 - Source file: `n8n/Paperclip MCP Tools (FinOSafe).json`
 - n8n instance: `http://192.168.1.30:5678`
 - MCP exposure: `availableInMCP: true` (set in workflow settings)
+- Transport used by Paperclip agents: local stdio proxy at `/home/labadmin/bin/finosafe-n8n-mcp.py`
+- Correct n8n MCP trigger URL pattern: `/mcp/<trigger-id>/sse`
+- Incorrect route to avoid: `/mcp-server/<trigger-id>/sse`
 
 ### Tool Chains
 
 | MCP Tool | Downstream Node | Endpoint | Status |
 | --- | --- | --- | --- |
-| `web_search` | HTTP Request (Tavily) | `https://api.tavily.com/search` | API key present — needs activation |
-| `financial_data` | HTTP Request (Alpha Vantage) | `https://www.alphavantage.co/query` | Replace `YOUR_ALPHA_VANTAGE_API_KEY` |
-| `qdrant` | HTTP Request (Qdrant) | `http://192.168.1.20:6333/collections/mem0_768d/points/scroll` | Replace `YOUR_QDRANT_API_KEY` |
-| `youtube` | HTTP Request (YouTube) | `https://www.googleapis.com/youtube/v3/search` | Replace `YOUR_YOUTUBE_API_KEY` |
-| `social` | HTTP Request (Reddit) | `https://www.reddit.com/search.json` | No auth required — ready |
+| `web_search` | Tavily | `https://api.tavily.com/search` | Validated |
+| `financial_data_api` | Alpha Vantage | `https://www.alphavantage.co/query` | Validated |
+| `qdrant_search` | Qdrant | `http://192.168.1.20:6333` | Configured |
+| `youtube_api` | YouTube | `https://www.googleapis.com/youtube/v3/search` | Configured |
+| `reddit_social_search` | Reddit | `https://www.reddit.com/search.json` | Configured |
+
+### Validation Record
+
+- 2026-05-11: `FINAA-9` completed through `alpha-researcher`.
+- Codex heartbeat run: `f9c8f845-c07d-489b-af35-f0f2eecd6f6e`, status `succeeded`.
+- n8n workflow executions: `131` through `135`, status `success`.
+- `web_search` returned `Insurance News | InsuranceNewsNet`.
+- `financial_data_api` returned AAPL price `293.3200`, latest trading day `2026-05-08`.
 
 ### Activation Checklist
 
-- [ ] Fill in missing API keys (Alpha Vantage, Qdrant, YouTube) in the n8n node configs
-- [ ] Manually connect each MCP Trigger → HTTP Request node in the UI (right-side `main` output to left-side input)
-- [ ] Toggle workflow to **Active** in n8n
-- [ ] Confirm **Settings → Available in MCP** is ON
-- [ ] Register the n8n MCP endpoint in Paperclip's agent tool config
+- [x] Fill in required API keys in n8n action nodes
+- [x] Connect each MCP Trigger to its downstream action node
+- [x] Toggle workflow to **Active** in n8n
+- [x] Confirm n8n MCP trigger endpoints use `/mcp/<trigger-id>/sse`
+- [x] Register the local n8n MCP proxy in Paperclip/Codex tool config
 
 ### Connection Note
 
@@ -121,6 +149,7 @@ The MCP Trigger's **right-side** output (`main`) connects to the HTTP Request no
 
 - [Paperclip Local Company Handbook](runbooks/paperclip-local-company-handbook.md)
 - [Paperclip Local Company Usage Guide](runbooks/paperclip-local-company-usage-guide.md)
+- [FinOSafe Recovery and Validation Runbook](runbooks/paperclip-finosafe-recovery-validation.md)
 - `docs/agentic-architecture-implementation.md`
 - `docs/paperclip-role-policy-bootstrap.md`
 - `tasks.md`

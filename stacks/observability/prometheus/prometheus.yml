@@ -27,8 +27,15 @@ scrape_configs:
     static_configs:
       - targets: ["obs-postgres-exporter-local:9187"]
 
+  - job_name: qdrant
+    metrics_path: /metrics
+    authorization:
+      credentials_file: /etc/prometheus/secrets/qdrant_api_key
+    static_configs:
+      - targets: ["192.168.1.20:6333"]
+
   - job_name: blackbox_http
-    scrape_interval: 24h
+    scrape_interval: 1m
     metrics_path: /probe
     params:
       module: [http_2xx]

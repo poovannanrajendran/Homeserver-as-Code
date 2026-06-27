@@ -36,6 +36,7 @@ Use this before making changes, and again after any reboot.
     - Portainer
     - Jenkins
     - n8n
+    - Children Email Digest (`ced-app`)
     - Grafana / Prometheus / node-exporter / cAdvisor
     - databases (Postgres, MariaDB, Mongo, Redis)
 
@@ -104,6 +105,7 @@ Before rebooting any host:
   - OpenClaw update
   - dashboard/observability collector
   - any long compose maintenance
+  - Children Email Digest pipeline/backfill
 - Record the currently running timers and active containers.
 - Notify yourself if a service window is in progress.
 
@@ -159,6 +161,7 @@ After each boot or reboot, check:
 ### VM / Service Layer
 - Docker daemon is running on `docker-host-01`.
 - Compose stacks are up and the expected containers are healthy.
+- `ced-app` is running, its internal cron is present, and it can reach the shared PostgreSQL service.
 - Grafana / Prometheus / Alertmanager respond on the runner.
 - OpenClaw gateway is running and reachable on the AI node.
 - YouTube sync timer is active and the next run is scheduled.
@@ -178,6 +181,8 @@ After each boot or reboot, check:
 
 ### Data Layer
 - Local Postgres databases are accepting connections.
+- All PostgreSQL containers on VM `100` and VM `103` have a successful logical dump predating the `02:15` PBS snapshot.
+- Logical dump retention matches PBS: latest 7, weekly 4, and monthly 6.
 - MongoDB Atlas connectivity is confirmed.
 - Supabase connectivity is confirmed if enabled.
 

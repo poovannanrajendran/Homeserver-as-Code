@@ -9,7 +9,7 @@ flowchart LR
   PVE --> VM100["VM 100<br/>docker-host-01"]
   PVE --> VM101["VM 101<br/>ai-node-01"]
   PVE --> VM103["VM 103<br/>automation-runner-01"]
-  PVE --> VM104["VM 104<br/>media-01"]
+  PVE --> CT104["CT 104<br/>media-01"]
   PVE --> VM105["VM 105<br/>pbs-01"]
 
   VM100 --> CDB["Databases<br/>MariaDB/Postgres/Mongo/SQL Server"]
@@ -23,7 +23,7 @@ flowchart LR
   VM103 --> RUNNER["Python Cron Workloads"]
   VM103 --> ARDB["Runner DBs<br/>Postgres + Mongo"]
 
-  VM104 --> JF["Jellyfin/Plex"]
+  CT104 --> JF["Jellyfin/Plex"]
   VM105 --> PBS["Proxmox Backup Server"]
 ```
 

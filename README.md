@@ -38,6 +38,7 @@ This repository was fully generated and implemented with **Codex 5.3** in less t
 - Cloud-init driven VM provisioning patterns
 - Docker Compose-first service deployment
 - Backup and update operational runbooks
+- PostgreSQL logical backups aligned to the PBS `7 daily / 4 weekly / 6 monthly` retention policy
 - Tailscale-first remote access model (no public port forwarding)
 
 ## Public Safety Model
@@ -52,10 +53,12 @@ This repository was fully generated and implemented with **Codex 5.3** in less t
 - Architecture overview: `docs/architecture.md`
 - Visual diagrams: `docs/diagrams.md`
 - Operations runbooks: `docs/runbooks.md`
+- OpenClaw memory + Memex integration: `docs/openclaw-memory-secondbrain-plan.md`
+- Gemini-CLI handoff for Memex fixes: `docs/gemini-cli-memex-openclaw-handoff.md`
 
 ## Repository Layout
 - `docs/` architecture, requirements, implementation phases, diagrams, runbooks
-- `stacks/` compose stacks (databases/platform/observability/nextcloud/media)
+- `stacks/` compose stacks (databases/platform/observability/nextcloud; media stack is legacy reference)
 - `scripts/` reusable operational scripts
 - `infra/` cloud-init and VM inventory examples
 - `examples/` redacted `.env` templates
@@ -76,6 +79,9 @@ This repository was fully generated and implemented with **Codex 5.3** in less t
    cd ../nextcloud && docker compose up -d
    ```
 4. Use `scripts/update_compose_stack.sh` for controlled upgrades.
+
+## Note: Jellyfin Deployment Model
+This repo previously documented Jellyfin as a Docker Compose stack. The current model is **Jellyfin running natively inside a Proxmox LXC container**. See `docs/runbooks.md` for the LXC flow.
 
 ## Security Baseline
 - Keep this repository public-safe only

@@ -1,9 +1,26 @@
 services:
   jellyfin:
-    image: jellyfin/jellyfin:latest
+    image: jellyfin/jellyfin:10.10.7
+    container_name: jellyfin
     restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: ${TZ:-UTC}
+      JELLYFIN_PublishedServerUrl: ${JELLYFIN_PUBLISHED_SERVER_URL:-}
+    user: "${PUID:-1000}:${PGID:-1000}"
+    group_add:
+      - "${RENDER_GID:-109}"
+      - "${VIDEO_GID:-44}"
     volumes:
-      - /srv/data/media/config:/config
-      - /mnt/media-library:/media
+      - ${JELLYFIN_CONFIG_DIR:-/srv/data/media/config}:/config
+      - ${JELLYFIN_CACHE_DIR:-/srv/data/media/cache}:/cache
+      - ${MEDIA_LIBRARY_DIR:-/mnt/media-library}:/media:ro
+      - ${MEDIA_MOVIES_DIR:-/mnt/media-library/movies}:/media/movies:ro
+      - ${MEDIA_TV_DIR:-/mnt/media-library/tv}:/media/tv:ro
+      - ${MEDIA_MUSIC_DIR:-/mnt/media-library/music}:/media/music:ro
+      - ${MEDIA_HOME_VIDEOS_DIR:-/mnt/media-library/home-videos}:/media/home-videos:ro
+      - ${MEDIA_PHOTOS_DIR:-/mnt/media-library/photos}:/media/photos:ro
     ports:
-      - "8096:8096"
+      - "${JELLYFIN_HTTP_PORT:-8096}:8096"
+    devices:
+      - "${JELLYFIN_DRI_DEVICE:-/dev/dri}:/dev/dri"

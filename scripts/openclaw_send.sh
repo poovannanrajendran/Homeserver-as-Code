@@ -15,6 +15,7 @@ DEFAULT_AGENT="${OPENCLAW_AGENT:-fury}"
 CHANNEL="${OPENCLAW_CHANNEL:-telegram}"
 ACCOUNT="${OPENCLAW_ACCOUNT:-default}"
 TARGET="${OPENCLAW_TARGET:-}"
+TELEGRAM_TARGET="${OPENCLAW_TELEGRAM_TARGET:-}"
 MESSAGE=""
 USE_STDIN=0
 JSON=0
@@ -48,7 +49,7 @@ Options:
 
 Examples:
   scripts/openclaw_send.sh --agent fury "Give me 5 LinkedIn post ideas about AI agents in Lloyd's market."
-  scripts/openclaw_send.sh --target 5753819446 --message "Smoke test from terminal"
+  scripts/openclaw_send.sh --target <telegram-chat-id> --message "Smoke test from terminal"
   echo "Write a concise LinkedIn post about Blueprint Two." | scripts/openclaw_send.sh --stdin
 USAGE
 }
@@ -228,12 +229,16 @@ if not candidates:
 candidates.sort(key=lambda item: item[0], reverse=True)
 print(candidates[0][1])
 ' <<<"$SESSION_JSON"
-  )" || true
+)" || true
+fi
+
+if [[ -z "$TARGET" ]]; then
+  TARGET="$TELEGRAM_TARGET"
 fi
 
 if [[ -z "$TARGET" ]]; then
   echo "Error: could not infer a Telegram target for agent '$DEFAULT_AGENT'." >&2
-  echo "Set OPENCLAW_TARGET or pass --target explicitly." >&2
+  echo "Set OPENCLAW_TELEGRAM_TARGET or pass --target explicitly." >&2
   exit 1
 fi
 

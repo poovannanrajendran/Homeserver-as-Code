@@ -3,6 +3,13 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
 fail=0
 
 check() {
@@ -28,7 +35,7 @@ check "port 3102 listening" sh -lc 'python3 -c "import os,socket,sys; p=int(os.e
 try: s.connect((\"127.0.0.1\", p))
 except OSError: sys.exit(1)
 finally: s.close()"'
-check "lab health endpoint" sh -lc 'curl -fsS "http://localhost:${PAPERCLIP_HOST_PORT:-3102}/api/health" >/dev/null'
+check "lab health endpoint" curl -fsS "http://localhost:${PAPERCLIP_HOST_PORT:-3102}/api/health"
 check "claude installed" sh -lc 'docker compose exec -T paperclip sh -lc "command -v claude >/dev/null"'
 check "gemini installed" sh -lc 'docker compose exec -T paperclip sh -lc "command -v gemini >/dev/null"'
 check "codex installed" sh -lc 'docker compose exec -T paperclip sh -lc "command -v codex >/dev/null"'

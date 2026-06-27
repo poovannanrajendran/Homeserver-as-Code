@@ -384,6 +384,68 @@ ssh codex_agent_agent@ai-node-01.tail4bbda6.ts.net '/home/codex_agent_agent/yout
 scripts/backup_preflight.sh
 ```
 
+## Children Email Digest Operations and Backup
+
+Runtime on `docker-host-01`:
+- Project: `/opt/children-email-digest`
+- Container: `ced-app`
+- Database: `children_email_digest`, role `ced_app`, schema `ced`, in shared container `postgres`
+- Network: `backend-net`
+- Pipeline schedule: `07:30`, `10:00`, `13:00`, and `19:00` Europe/London
+
+Read-only health and audit checks:
+```bash
+docker ps --filter name=ced-app
+docker top ced-app -eo pid,etimes,args
+docker logs --timestamps --tail 200 ced-app
+docker exec ced-app crontab -l
+docker exec postgres psql -U postgres -d children_email_digest -c \
+  'SELECT id, started_at, finished_at, mode, counts, tokens FROM ced.runs ORDER BY id DESC LIMIT 10;'
+```
+
+Log locations:
+- Normal cron output: `docker logs ced-app`
+- Physical Docker JSON log: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
+- A manually launched `docker exec` command writes to its invoking terminal, not to `docker logs`
+- Durable audit: `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
+
+Backup layers:
+1. `01:30` on `docker-host-01`: `/usr/local/sbin/backup-postgres-containers` dumps every connectable non-template database and PostgreSQL roles from container `postgres`.
+2. `01:40` on `automation-runner-01`: the same script dumps containers `automation-postgres` and `compose-postgres-1`.
+3. Dumps are mode `0600`, directories are mode `0700`, archive contents are validated, and SHA-256 checksums are written.
+4. Logical generations use the PBS GFS policy: `keep-last=7`, `keep-weekly=4`, and `keep-monthly=6`.
+5. `02:15`: the existing PBS snapshot job backs up VM `100` and VM `103`, including PostgreSQL storage and completed logical dumps.
+6. PBS stores snapshots in `pbs-store`, mounted over NFS from the external 4 TB disk at `/mnt/usb-4tb/pbs-datastore` on the Proxmox host.
+
+The external disk is always mounted, so this is external-media backup rather than a genuinely offline or air-gapped copy.
+Backup output is written to `/var/log/postgres-backup.log` on each VM and rotated weekly with eight rotations retained.
+Each script run discovers the container's configured bootstrap administrator; application traffic continues using restricted application roles.
+
+Run and verify a logical backup manually:
+```bash
+sudo /usr/local/sbin/backup-postgres-containers
+sudo find /srv/backups/postgres -mindepth 2 -maxdepth 2 -type d -print
+latest="$(sudo find /srv/backups/postgres/postgres -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+sudo sh -c "cd '${latest}' && sha256sum -c SHA256SUMS"
+```
+
+Database restore drill to a temporary database:
+```bash
+latest_generation="$(sudo find /srv/backups/postgres/postgres -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+latest="${latest_generation}/children_email_digest.dump"
+docker exec postgres createdb -U postgresadmin children_email_digest_restore_test
+sudo cat "${latest}" | docker exec -i postgres pg_restore -U postgresadmin -d children_email_digest_restore_test --no-owner --no-acl
+docker exec postgres psql -U postgresadmin -d children_email_digest_restore_test -c '\dt ced.*'
+docker exec postgres dropdb -U postgresadmin children_email_digest_restore_test
+```
+
+Restore roles only when rebuilding PostgreSQL and review the SQL before applying it because role dumps contain password hashes:
+```bash
+sudo less /srv/backups/postgres/<container>/<generation>/postgres_roles.sql
+sudo cat /srv/backups/postgres/<container>/<generation>/postgres_roles.sql | \
+  docker exec -i postgres psql -U postgresadmin -d postgres
+```
+
 ## Outline (Family Wiki)
 See `docs/outline.md`.
 

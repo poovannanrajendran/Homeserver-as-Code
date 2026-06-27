@@ -14,6 +14,20 @@ local/private/
 backups/
 logs/
 *.log
+output/
+.paperclip/
+.playwright-mcp/
+dashboards-page.md
+*.png
+*.backup
+*.backup.gz
+*.dump
+/, m.get*
+
+# Exported workflows may contain provider credentials. Only the sanitised
+# canonical FinOSafe workflow is version controlled.
+n8n/*.json
+!n8n/Paperclip MCP Tools (FinOSafe).json
 
 # Python
 __pycache__/

@@ -17,7 +17,7 @@ This document captures the current monitoring setup for:
 
 ## Dashboard Access
 - Grafana URL (LAN): `http://192.168.1.30:3000`
-- Default login currently configured: `admin` / `admin`
+- Grafana admin user and password are supplied through `/srv/stacks/observability/.env`; no default password is committed
 - Dashboard URL: `http://192.168.1.30:3000/d/homeserver-health/homeserver-health`
 - Additional dashboard: `Vercel + Lloyds Pages` (`vercel-lloyds-pages`)
 - Purpose: track all Vercel apps and the Lloyds GitHub Pages site in one view
@@ -110,7 +110,7 @@ Receivers:
 ## Current Operational Notes
 - Alert sender was changed to `hello@britaroma.com` so SMTP relay policy accepts outgoing alerts.
 - Email delivery now passes relay checks (`status=sent` visible in `smtp-relay` logs).
-- Telegram API path was validated with bot send test to chat id `5753819446`.
+- Telegram API delivery was validated; the bot token and chat ID remain in the ignored runtime environment.
 - Monthly maintenance notifications are wired through Slack and Discord webhooks from the runner-side maintenance script.
 - Amber/red cards are threshold states, not cosmetic:
   - amber means degraded or partially failing
@@ -154,6 +154,7 @@ grep obs_qdrant_http_up /srv/stacks/observability/textfile/host_checks.prom
 
 ## Credentials and Secrets
 - Runtime secrets are stored on host env files under:
+  - `/srv/stacks/observability/.env`
   - `/srv/stacks/observability/scripts/alertmanager.env`
   - `/srv/stacks/observability/scripts/host_checks.env`
   - `/srv/stacks/observability/scripts/monthly_maintenance.env`
@@ -161,3 +162,4 @@ grep obs_qdrant_http_up /srv/stacks/observability/textfile/host_checks.prom
 - The schedule guard and monthly maintenance scripts also accept the Lloyds project aliases `ALERT_WEBHOOK_SLACK` and `ALERT_WEBHOOK_DISCORD` from `/Users/poovannanrajendran/Documents/GitHub/lloyds-market-news-digest/.env`.
 - Recommended sync helper: `scripts/sync_runner_alert_env.sh` copies those aliases into the runner env files used by the guard and monthly maintenance jobs.
 - Do not commit secret values to git.
+- Seed `/srv/stacks/observability/.env` from `stacks/observability/.env.example`, replace every `CHANGE_ME` value, and set mode `0600` before deployment.

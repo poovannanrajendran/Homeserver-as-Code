@@ -65,11 +65,9 @@ record_check() {
 main() {
   load_env
 
-  local runner_host ai_host docker_host runner_user ai_user docker_user
-  runner_host="${RUNNER_HOST:-192.168.1.30}"
+  local ai_host docker_host ai_user docker_user
   ai_host="${AI_NODE_HOST:-192.168.1.24}"
   docker_host="${DOCKER_HOST:-192.168.1.20}"
-  runner_user="${RUNNER_SSH_USER:-labadmin}"
   ai_user="${AI_SSH_USER:-labadmin}"
   docker_user="${DOCKER_SSH_USER:-labadmin}"
 
