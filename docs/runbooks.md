@@ -391,7 +391,9 @@ Runtime on `docker-host-01`:
 - Container: `ced-app`
 - Database: `children_email_digest`, role `ced_app`, schema `ced`, in shared container `postgres`
 - Network: `backend-net`
-- Pipeline schedule: `07:30`, `10:00`, `13:00`, and `19:00` Europe/London
+- Pipeline schedule: `07:30` and `18:00` Europe/London
+- Immediate alerts: Slack and Discord from the in-container cron wrapper
+- Independent watchdog: every five minutes on `automation-runner-01`
 
 Read-only health and audit checks:
 ```bash
@@ -399,6 +401,7 @@ docker ps --filter name=ced-app
 docker top ced-app -eo pid,etimes,args
 docker logs --timestamps --tail 200 ced-app
 docker exec ced-app crontab -l
+curl -fsS http://192.168.1.20:8000/api/health
 docker exec postgres psql -U postgres -d children_email_digest -c \
   'SELECT id, started_at, finished_at, mode, counts, tokens FROM ced.runs ORDER BY id DESC LIMIT 10;'
 ```
@@ -408,6 +411,10 @@ Log locations:
 - Physical Docker JSON log: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
 - A manually launched `docker exec` command writes to its invoking terminal, not to `docker logs`
 - Durable audit: `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
+- Watchdog script: `/opt/automation/children-email-digest-monitor/check_run_health.py` on `automation-runner-01`
+- Watchdog schedule: `/etc/cron.d/children-email-digest-monitor`
+- Watchdog output/state: `/var/log/children-email-digest-monitor.log` and `/var/lib/ced-monitor/incident`
+- Webhook credentials: private mode-`0600` `.env` files only; never commit or print the URLs
 
 Backup layers:
 1. `01:30` on `docker-host-01`: `/usr/local/sbin/backup-postgres-containers` dumps every connectable non-template database and PostgreSQL roles from container `postgres`.

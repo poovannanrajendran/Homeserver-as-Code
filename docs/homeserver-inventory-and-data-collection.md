@@ -177,13 +177,16 @@ This page is the working reference for the homeserver environment. It captures:
 - Restart policy: `unless-stopped`
 - Docker network: `backend-net`
 - Persistent mounts: `config` read-only, `secrets` read-only, and `data` read-write from the project directory
-- No frontend port is currently published; the production container runs the cron daemon
-- Schedule: `07:30`, `10:00`, `13:00`, and `19:00` in `Europe/London`
+- Dashboard/API: `http://192.168.1.20:8000`; health endpoint: `/api/health`
+- Schedule: `07:30` and `18:00` in `Europe/London`
 - Dependencies: shared PostgreSQL, Gmail API/OAuth, Gemini by default, optional Claude/OpenAI, Gmail API send, and `smtp-relay` fallback
 - Operational logs: `docker logs ced-app`; cron output is redirected to container stdout/stderr
 - Docker log storage: JSON-file driver under `/var/lib/docker/containers/<container-id>/`
 - Application output: `/opt/children-email-digest/output`; latest digest compatibility copy: `/opt/children-email-digest/data/digest.html`
 - Audit sources: PostgreSQL tables `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
+- Immediate alerts: the cron wrapper sends Slack and Discord notifications for non-zero exits and runs with processing errors
+- External watchdog: `/opt/automation/children-email-digest-monitor/check_run_health.py` on `automation-runner-01`, every five minutes via `/etc/cron.d/children-email-digest-monitor`
+- Watchdog log/state: `/var/log/children-email-digest-monitor.log` and `/var/lib/ced-monitor/incident`
 
 ### Important ports
 - Portainer: `9443`
@@ -304,7 +307,8 @@ This page is the working reference for the homeserver environment. It captures:
 - Collects Proxmox, VM, DB, disk, and cron inventory data
 
 ### Children Email Digest schedules
-- Pipeline cron runs inside `ced-app` at `07:30`, `10:00`, `13:00`, and `19:00` Europe/London.
+- Pipeline cron runs inside `ced-app` at `07:30` and `18:00` Europe/London.
+- The independent watchdog on `automation-runner-01` checks every five minutes and alerts on unreachable service, stale runs, processing errors, and missed schedules after a 20-minute grace period.
 - All PostgreSQL databases on `docker-host-01` are dumped at `01:30` via `/etc/cron.d/postgres-backup`.
 - All PostgreSQL databases on `automation-runner-01` are dumped at `01:40` via `/etc/cron.d/postgres-backup`.
 - Backup execution is logged to `/var/log/postgres-backup.log` on each host.
