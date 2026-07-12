@@ -1,0 +1,67 @@
+{
+  "id": null,
+  "uid": "homelab-overview",
+  "title": "Homelab Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Node CPU Usage %",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {"expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage %",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [
+        {"expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100", "refId": "A"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Containers Running",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 8},
+      "targets": [
+        {"expr": "count(container_last_seen)", "refId": "A"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "HTTP Probes Up",
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 8},
+      "targets": [
+        {"expr": "sum(probe_success)", "refId": "A"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "HTTP Probes Total",
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 8},
+      "targets": [
+        {"expr": "count(probe_success)", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Probe Duration (s)",
+      "gridPos": {"h": 6, "w": 12, "x": 18, "y": 8},
+      "targets": [
+        {"expr": "probe_duration_seconds", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Docker CPU by Container",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 14},
+      "targets": [
+        {"expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name!~\"\"}[5m]))", "refId": "A"}
+      ]
+    }
+  ]
+}

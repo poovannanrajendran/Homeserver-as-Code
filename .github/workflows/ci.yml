@@ -31,8 +31,17 @@ jobs:
           shellcheck scripts/update_compose_stack.sh scripts/backup_preflight.sh
 
       - name: Compose config validation
+        env:
+          AUTHENTIK_POSTGRESQL__PASSWORD: mock_password
+          GRAFANA_ADMIN_PASSWORD: mock_password
+          POSTGRES_PASSWORD: mock_password
+          POSTGRES_EXPORTER_DATA_SOURCE_NAME: mock_postgres_uri
         run: |
           set -euo pipefail
+          # Create dummy .env files for each stack to prevent docker compose from failing on missing files
+          for d in stacks/*/; do
+            touch "$d/.env"
+          done
           for f in stacks/*/docker-compose.yml; do
             echo "Validating $f"
             docker compose -f "$f" config >/dev/null

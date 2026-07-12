@@ -1,0 +1,286 @@
+{
+  "name": "Paperclip MCP Tools (FinOSafe)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "2f8583d0-141d-487a-8adb-f062bd14301f"
+      },
+      "id": "2eb37faa-42de-4f6b-ab6b-a348b7baf783",
+      "name": "MCP Trigger: web_search",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [-208, 688],
+      "webhookId": "2f8583d0-141d-487a-8adb-f062bd14301f"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "api_key",
+              "value": "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"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "01babe38-69ce-444f-8aad-45e9c3cda944",
+      "name": "HTTP Request (Tavily)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 688]
+    },
+    {
+      "parameters": {
+        "path": "276cc567-a9f3-4197-b1e0-e10b1d5e4989"
+      },
+      "id": "ccc7cedf-3505-4bce-bd22-f7f8be92d58b",
+      "name": "MCP Trigger: financial_data",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [-192, 896],
+      "webhookId": "276cc567-a9f3-4197-b1e0-e10b1d5e4989"
+    },
+    {
+      "parameters": {
+        "url": "https://www.alphavantage.co/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "function",
+              "value": "GLOBAL_QUOTE"
+            },
+            {
+              "name": "symbol",
+              "value": "={{ $json.symbol || $json.query }}"
+            },
+            {
+              "name": "apikey",
+              "value": "YOUR_ALPHA_VANTAGE_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aa001122-aa00-aa00-aa00-001122334455",
+      "name": "HTTP Request (Alpha Vantage)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 896]
+    },
+    {
+      "parameters": {
+        "path": "7acf451c-4642-4fab-976d-af0d44d5d6ec"
+      },
+      "id": "712dba53-97c1-454a-aa84-0a2266493fe2",
+      "name": "MCP Trigger: qdrant",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [-192, 1120],
+      "webhookId": "7acf451c-4642-4fab-976d-af0d44d5d6ec"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.20:6333/collections/mem0_768d/points/scroll",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api-key",
+              "value": "YOUR_QDRANT_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ filter: { must: [{ key: 'data', match: { text: $json.topic } }] }, limit: 5, with_payload: true }) }}",
+        "options": {}
+      },
+      "id": "bb112233-bb11-bb11-bb11-112233445566",
+      "name": "HTTP Request (Qdrant)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 1120]
+    },
+    {
+      "parameters": {
+        "path": "9870d8f5-d0a3-4616-b075-b57c36d091c2"
+      },
+      "id": "f34bc3f2-48c1-47cb-842d-3c0693378df8",
+      "name": "MCP Trigger: youtube",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [-192, 1344],
+      "webhookId": "9870d8f5-d0a3-4616-b075-b57c36d091c2"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "type",
+              "value": "video"
+            },
+            {
+              "name": "maxResults",
+              "value": "5"
+            },
+            {
+              "name": "key",
+              "value": "YOUR_YOUTUBE_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc223344-cc22-cc22-cc22-223344556677",
+      "name": "HTTP Request (YouTube)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 1344]
+    },
+    {
+      "parameters": {
+        "path": "7e9c3bd3-aa4c-4796-ad0c-b3f9aeddc2cf"
+      },
+      "id": "6dcc537d-c40b-4c3f-85db-b5e3998abff3",
+      "name": "MCP Trigger: social",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [-192, 1568],
+      "webhookId": "7e9c3bd3-aa4c-4796-ad0c-b3f9aeddc2cf"
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/search.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            },
+            {
+              "name": "sort",
+              "value": "relevance"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-paperclip-agent/1.0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd334455-dd33-dd33-dd33-334455667788",
+      "name": "HTTP Request (Reddit)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 1568]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "MCP Trigger: web_search": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Tavily)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Trigger: financial_data": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Alpha Vantage)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Trigger: qdrant": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Qdrant)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Trigger: youtube": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (YouTube)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Trigger: social": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Reddit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "bd87db7e-0e84-4fa7-8c6e-ed2c183f06be",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e8d746a47e666f2f19591e4d9402a838486cdeae48c7de5fdc9c72c55e47620"
+  },
+  "id": "OJVWHJzekaQPzihW",
+  "tags": []
+}

@@ -1,19 +1,128 @@
 services:
   prometheus:
     image: prom/prometheus:latest
+    container_name: obs-prometheus
     restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
     volumes:
-      - /srv/data/observability/prometheus:/prometheus
+      - /srv/stacks/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /srv/stacks/observability/prometheus/rules:/etc/prometheus/rules:ro
+      - /srv/stacks/observability/prometheus/secrets:/etc/prometheus/secrets:ro
+      - /srv/stacks/observability/prometheus-data:/prometheus
     ports:
-      - "127.0.0.1:9090:9090"
+      - "9090:9090"
 
   grafana:
     image: grafana/grafana:latest
+    container_name: obs-grafana
     restart: unless-stopped
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: CHANGE_ME
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
-      - /srv/data/observability/grafana:/var/lib/grafana
+      - /srv/stacks/observability/grafana-data:/var/lib/grafana
+      - /srv/stacks/observability/grafana/provisioning:/etc/grafana/provisioning
+      - /srv/stacks/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:latest
+    container_name: obs-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - /srv/stacks/observability/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - /srv/stacks/observability/loki-data:/loki
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: obs-promtail
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - /srv/stacks/observability/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /etc/machine-id:/etc/machine-id:ro
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: obs-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - "--path.rootfs=/host"
+      - "--collector.textfile.directory=/textfile_collector"
+    volumes:
+      - /:/host:ro,rslave
+      - /srv/stacks/observability/textfile:/textfile_collector:ro
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: obs-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: obs-blackbox
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - /srv/stacks/observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+
+  postgres-exporter-local:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: obs-postgres-exporter-local
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DATA_SOURCE_NAME:?Set POSTGRES_EXPORTER_DATA_SOURCE_NAME in .env}
+    ports:
+      - "9187:9187"
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: obs-alertmanager
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    volumes:
+      - /srv/stacks/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - /srv/stacks/observability/alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: obs-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3002:3001"
+    volumes:
+      - /srv/stacks/observability/uptime-kuma:/app/data
+
+networks:
+  default:
+    name: observability-net

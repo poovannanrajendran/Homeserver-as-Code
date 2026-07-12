@@ -11,6 +11,7 @@ REMOTE_USER="${OPENCLAW_REMOTE_USER:-openclaw}"
 REMOTE_HOME="${OPENCLAW_REMOTE_HOME:-/var/lib/openclaw}"
 REMOTE_HOST_TAILNET="${OPENCLAW_HOST_TAILNET:-ai-node-01.tail4bbda6.ts.net}"
 REMOTE_HOST_LAN="${OPENCLAW_HOST_LAN:-192.168.1.24}"
+DEFAULT_TO="${OPENCLAW_AGENT_TO:-}"
 FORWARD_ARGS=()
 
 usage() {
@@ -30,7 +31,7 @@ Everything else is forwarded to `openclaw agent` unchanged.
 Examples:
   scripts/openclaw_agent_turn.sh --agent fury --message "Reply with exactly: ping" --timeout 30 --json
   scripts/openclaw_agent_turn.sh --agent loki --message "Write one sentence about Lloyd's market and AI agents."
-  scripts/openclaw_agent_turn.sh --agent loki --message "Draft a LinkedIn post" --deliver --reply-channel telegram --reply-to 5753819446
+  OPENCLAW_AGENT_TO=<telegram-chat-id> scripts/openclaw_agent_turn.sh --agent loki --message "Draft a LinkedIn post" --deliver --reply-channel telegram
 USAGE
 }
 
@@ -87,6 +88,18 @@ if [[ ${#FORWARD_ARGS[@]} -eq 0 ]]; then
   exit 1
 fi
 
+HAS_TO=0
+for arg in "${FORWARD_ARGS[@]}"; do
+  if [[ "$arg" == "--to" || "$arg" == "-t" ]]; then
+    HAS_TO=1
+    break
+  fi
+done
+
+if [[ "$HAS_TO" -eq 0 && -n "$DEFAULT_TO" ]]; then
+  FORWARD_ARGS=(--to "$DEFAULT_TO" "${FORWARD_ARGS[@]}")
+fi
+
 REMOTE_HOST="$REMOTE_HOST_TAILNET"
 if [[ "$HOST_MODE" == "lan" ]]; then
   REMOTE_HOST="$REMOTE_HOST_LAN"
@@ -97,9 +110,27 @@ SSH_OPTS=(
   -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
 )
 
-REMOTE_CMD="sudo -u $(shell_quote "$REMOTE_USER") -H env HOME=$(shell_quote "$REMOTE_HOME") openclaw agent"
+REMOTE_BASE_CMD="sudo -u $(shell_quote "$REMOTE_USER") -H env HOME=$(shell_quote "$REMOTE_HOME") openclaw agent"
+REMOTE_GATEWAY_CMD="$REMOTE_BASE_CMD"
+REMOTE_LOCAL_CMD="$REMOTE_BASE_CMD --local"
 for arg in "${FORWARD_ARGS[@]}"; do
-  REMOTE_CMD+=" $(shell_quote "$arg")"
+  REMOTE_GATEWAY_CMD+=" $(shell_quote "$arg")"
+  REMOTE_LOCAL_CMD+=" $(shell_quote "$arg")"
 done
 
-exec ssh "${SSH_OPTS[@]}" "${SSH_USER}@${REMOTE_HOST}" "$REMOTE_CMD"
+run_remote() {
+  local cmd="$1"
+  ssh "${SSH_OPTS[@]}" "${SSH_USER}@${REMOTE_HOST}" "$cmd" 2>&1
+}
+
+OUTPUT="$(run_remote "$REMOTE_GATEWAY_CMD")" || STATUS=$?
+STATUS="${STATUS:-0}"
+
+if [[ "$STATUS" -ne 0 ]] && grep -qE 'device identity required|gateway closed \(1008\): device identity required' <<<"$OUTPUT"; then
+  printf '%s\n' "[openclaw-agent-turn] gateway rejected local loopback device auth; retrying with --local" >&2
+  OUTPUT="$(run_remote "$REMOTE_LOCAL_CMD")" || STATUS=$?
+  STATUS="${STATUS:-0}"
+fi
+
+printf '%s\n' "$OUTPUT"
+exit "$STATUS"

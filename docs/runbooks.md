@@ -176,10 +176,27 @@ Recommended reading:
 2. Read the usage guide for safe prompts and a first end-to-end test.
 3. Keep the local company separate from the production Paperclip control plane on `automation-runner-01`.
 
+## Paperclip FinOSafe Remote Company
+
+Use these docs for the remote FinOSafe company on `automation-runner-01` only:
+
+- [FinOSafe Handoff](runbooks/paperclip-finosafe-handoff.md)
+- [FinOSafe Recovery and Validation Runbook](runbooks/paperclip-finosafe-recovery-validation.md)
+- [FinOSafe PRD](products/prd-finosafe-paperclip.md)
+- [FinOSafe Blockers and Fixes](products/blockers-finosafe-paperclip.md)
+
+Important live paths:
+
+- Paperclip URL: `http://192.168.1.30:3101`
+- n8n URL: `http://192.168.1.30:5678`
+- FinOSafe working directory: `/home/labadmin/paperclip-company-finosafe`
+- Live instance: `/home/labadmin/.paperclip-worktrees/instances/finosafe-live`
+- n8n MCP proxy: `/home/labadmin/bin/finosafe-n8n-mcp.py`
+
 ## OpenClaw Discord Channel
 
 Live state on `ai-node-01`:
-- OpenClaw runtime: `2026.5.3`
+- OpenClaw runtime: `2026.6.8 (844f405)`
 - Discord plugin: `@openclaw/discord`
 - Gateway auth: `gateway.auth.mode = token`
 - Discord token source: `DISCORD_BOT_TOKEN` loaded from `~/.env`
@@ -278,6 +295,7 @@ sudo cat /srv/data/platform/jenkins/secrets/initialAdminPassword
 ```
 
 ## n8n Uses Postgres Check
+This check applies to the `docker-host-01` platform n8n.
 ```bash
 docker exec -it n8n env | grep '^DB_TYPE='
 ```
@@ -364,6 +382,75 @@ ssh codex_agent_agent@ai-node-01.tail4bbda6.ts.net '/home/codex_agent_agent/yout
 ## Backup Preflight
 ```bash
 scripts/backup_preflight.sh
+```
+
+## Children Email Digest Operations and Backup
+
+Runtime on `docker-host-01`:
+- Project: `/opt/children-email-digest`
+- Container: `ced-app`
+- Database: `children_email_digest`, role `ced_app`, schema `ced`, in shared container `postgres`
+- Network: `backend-net`
+- Pipeline schedule: `07:30` and `18:00` Europe/London
+- Immediate alerts: Slack and Discord from the in-container cron wrapper
+- Independent watchdog: every five minutes on `automation-runner-01`
+
+Read-only health and audit checks:
+```bash
+docker ps --filter name=ced-app
+docker top ced-app -eo pid,etimes,args
+docker logs --timestamps --tail 200 ced-app
+docker exec ced-app crontab -l
+curl -fsS http://192.168.1.20:8000/api/health
+docker exec postgres psql -U postgres -d children_email_digest -c \
+  'SELECT id, started_at, finished_at, mode, counts, tokens FROM ced.runs ORDER BY id DESC LIMIT 10;'
+```
+
+Log locations:
+- Normal cron output: `docker logs ced-app`
+- Physical Docker JSON log: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
+- A manually launched `docker exec` command writes to its invoking terminal, not to `docker logs`
+- Durable audit: `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
+- Watchdog script: `/opt/automation/children-email-digest-monitor/check_run_health.py` on `automation-runner-01`
+- Watchdog schedule: `/etc/cron.d/children-email-digest-monitor`
+- Watchdog output/state: `/var/log/children-email-digest-monitor.log` and `/var/lib/ced-monitor/incident`
+- Webhook credentials: private mode-`0600` `.env` files only; never commit or print the URLs
+
+Backup layers:
+1. `01:30` on `docker-host-01`: `/usr/local/sbin/backup-postgres-containers` dumps every connectable non-template database and PostgreSQL roles from container `postgres`.
+2. `01:40` on `automation-runner-01`: the same script dumps containers `automation-postgres` and `compose-postgres-1`.
+3. Dumps are mode `0600`, directories are mode `0700`, archive contents are validated, and SHA-256 checksums are written.
+4. Logical generations use the PBS GFS policy: `keep-last=7`, `keep-weekly=4`, and `keep-monthly=6`.
+5. `02:15`: the existing PBS snapshot job backs up VM `100` and VM `103`, including PostgreSQL storage and completed logical dumps.
+6. PBS stores snapshots in `pbs-store`, mounted over NFS from the external 4 TB disk at `/mnt/usb-4tb/pbs-datastore` on the Proxmox host.
+
+The external disk is always mounted, so this is external-media backup rather than a genuinely offline or air-gapped copy.
+Backup output is written to `/var/log/postgres-backup.log` on each VM and rotated weekly with eight rotations retained.
+Each script run discovers the container's configured bootstrap administrator; application traffic continues using restricted application roles.
+
+Run and verify a logical backup manually:
+```bash
+sudo /usr/local/sbin/backup-postgres-containers
+sudo find /srv/backups/postgres -mindepth 2 -maxdepth 2 -type d -print
+latest="$(sudo find /srv/backups/postgres/postgres -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+sudo sh -c "cd '${latest}' && sha256sum -c SHA256SUMS"
+```
+
+Database restore drill to a temporary database:
+```bash
+latest_generation="$(sudo find /srv/backups/postgres/postgres -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+latest="${latest_generation}/children_email_digest.dump"
+docker exec postgres createdb -U postgresadmin children_email_digest_restore_test
+sudo cat "${latest}" | docker exec -i postgres pg_restore -U postgresadmin -d children_email_digest_restore_test --no-owner --no-acl
+docker exec postgres psql -U postgresadmin -d children_email_digest_restore_test -c '\dt ced.*'
+docker exec postgres dropdb -U postgresadmin children_email_digest_restore_test
+```
+
+Restore roles only when rebuilding PostgreSQL and review the SQL before applying it because role dumps contain password hashes:
+```bash
+sudo less /srv/backups/postgres/<container>/<generation>/postgres_roles.sql
+sudo cat /srv/backups/postgres/<container>/<generation>/postgres_roles.sql | \
+  docker exec -i postgres psql -U postgresadmin -d postgres
 ```
 
 ## Outline (Family Wiki)

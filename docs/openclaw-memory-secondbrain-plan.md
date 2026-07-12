@@ -9,7 +9,7 @@
 
 ## 0. Live Implementation Notes — 2026-05-01
 
-These notes reflect the actual OpenClaw 2026.4.29 install on `ai-node-01`.
+These notes reflect the actual OpenClaw 2026.6.8 install on `ai-node-01`.
 
 - The active OpenClaw config file is `/var/lib/openclaw/.openclaw/openclaw.json`, not `~/.openclaw/config.json5`.
 - Phase 1 was applied using the live schema: `memory-core`/`openclaw-mem0` memory slot plus `memory-wiki` bridge mode. The older `memory.backend: "honcho"` block is not valid on this install.
@@ -111,7 +111,7 @@ Infrastructure:
 
 | Requirement | Value | Status |
 |-------------|-------|--------|
-| OpenClaw version | >= 2026.4.15 | ✓ 2026.4.29 confirmed |
+| OpenClaw version | >= 2026.4.15 | ✓ 2026.6.8 confirmed |
 | Ollama running on ai-node-01 | Mem0 extraction LLM (`llama3.2:3b`) + embedding (`nomic-embed-text`) | ✓ Confirmed — Mem0 uses local Ollama, not OpenAI/Gemini |
 | OpenAI / Gemini keys configured | Model routing for agents (not Mem0) | ✓ Confirmed in providers |
 | docker-host-01 accessible | Qdrant target | ✓ 192.168.1.20 |
@@ -143,7 +143,7 @@ sudo systemctl status openclaw-gateway --no-pager
 sudo -u openclaw openclaw health --json
 ```
 
-Expected: version `2026.4.29`, service `active (running)`.
+Expected: version `2026.6.8`, service `active (running)`.
 
 **Task 0.2 — Verify embedding provider is active**
 
@@ -225,7 +225,7 @@ Patch `/var/lib/openclaw/.openclaw/openclaw.json` on ai-node-01:
 
 **Task 1.2 — Native memory slot**
 
-For OpenClaw 2026.4.29, use `memory-core` initially, then `openclaw-mem0` after Phase 2. Do not add `memory.backend: "honcho"` to this host.
+For OpenClaw 2026.6.8, use `memory-core` initially, then `openclaw-mem0` after Phase 2. Do not add `memory.backend: "honcho"` to this host.
 
 Historical invalid block retained below as a warning:
 
@@ -1085,7 +1085,7 @@ Do not use plain `scp` directly into `~/.openclaw/...`; that creates `labadmin`-
 
 **Task 4.2 — Add per-agent Mem0 userId overrides**
 
-> **Live schema note (2026-05-01):** `agents.list[*].plugins` is rejected by OpenClaw 2026.4.29. Do not apply the JSON5 block below on the current host. It is retained as design intent. Use Mem0 CLI `--agent-id <agent>` namespaces for manual memory operations until OpenClaw supports per-agent plugin overrides in config.
+> **Live schema note (2026-05-01):** `agents.list[*].plugins` is rejected by OpenClaw 2026.6.8. Do not apply the JSON5 block below on the current host. It is retained as design intent. Use Mem0 CLI `--agent-id <agent>` namespaces for manual memory operations until OpenClaw supports per-agent plugin overrides in config.
 
 ```json5
 {
@@ -1407,7 +1407,7 @@ crontab -e
 
 ## 10. Full Config Reference
 
-Live config reference for OpenClaw 2026.4.29 on `ai-node-01`.
+Live config reference for OpenClaw 2026.6.8 on `ai-node-01`.
 
 > **Do not use the older `~/.openclaw/config.json5` examples as deployment truth on this host.**
 > The active file is `/var/lib/openclaw/.openclaw/openclaw.json`. Use `openclaw config patch --dry-run` before every change.
@@ -1785,7 +1785,7 @@ Historical target shape retained below for design context only.
 
 ### Phase 0 — Pre-Flight
 
-- [x] **0.1** OpenClaw version confirmed 2026.4.29 (a448042)
+- [x] **0.1** OpenClaw version confirmed 2026.6.8 (844f405)
 - [x] **0.2** Embedding provider active — local Ollama (`nomic-embed-text`)
 - [x] **0.3** Config backed up before changes
 - [x] **0.4** ai-node-01 → docker-host-01 network reachable
@@ -1861,7 +1861,7 @@ Historical target shape retained below for design context only.
 | Qdrant API key required | Port 6333/6334 bound to LAN; unauthenticated by default | Add `QDRANT__SERVICE__API_KEY` env var (Task 2.2b). Include `-H "api-key: <token>"` on all curl commands. |
 | Bulk ingest no semantic vectors | `openclaw_ingest.py` pushes payload only — no embeddings | Path A = keyword lookup only. Semantic recall via Memex uses Path B (MCP) exclusively. To fix: add `text-embedding-004` calls in ingest script and push 768-dim vectors. |
 | Mem0 collection mismatch | Mem0 targets `mem0_768d`; bulk ingest targets `memex-knowledge` | Mem0 will not auto-recall Memex content. MCP (`memex_search`) is the only Memex recall path until multi-collection Mem0 is configured or `memex-knowledge` receives real embeddings. |
-| Per-agent config overrides unsupported | Live OpenClaw 2026.4.29 rejects `agents.list[*].plugins` | Use Mem0 CLI `--agent-id <agent>` namespaces for manual operations. Do not apply per-agent plugin override JSON until the schema supports it. |
+| Per-agent config overrides unsupported | Live OpenClaw 2026.6.8 rejects `agents.list[*].plugins` | Use Mem0 CLI `--agent-id <agent>` namespaces for manual operations. Do not apply per-agent plugin override JSON until the schema supports it. |
 | Telegram bootstrap state | Telegram was routed to `fury` while `BOOTSTRAP.md` was still present in `workspace-fury`, which caused the fresh-workspace reply and blocked auto-memory validation | Bind Telegram explicitly to `fury`, remove the bootstrap file after seeding identity/user/soul files, and rerun the memory smoke test |
 | memory-wiki + Mem0 overlap | Both try to write memory | They complement: wiki = structured/provenance; Mem0 = semantic/auto. Not a conflict. |
 | MCP over SSH latency | Each MCP tool call opens SSH, adds ~100–300ms | Acceptable for on-demand queries. Batch queries via `/search?limit=10`. |

@@ -1,0 +1,1 @@
+40 1 * * * root POSTGRES_BACKUP_CONTAINERS=automation-postgres,compose-postgres-1 /usr/local/sbin/backup-postgres-containers >> /var/log/postgres-backup.log 2>&1

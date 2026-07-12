@@ -131,6 +131,9 @@ Practical guide for:
 
 
 ## Product Docs
+- [Purpose: FinOSafe Media Platform](products/purpose-finosafe-media-platform.md)
+- [PRD: FinOSafe Media Platform](products/prd-finosafe-media-platform.md)
+- [Tasks: FinOSafe Media Platform](products/tasks-finosafe-media-platform.md)
 - [Multi-Project Dashboard Architecture](products/multi-project-dashboard-architecture.md)
 - [PRD: YouTube Liked Videos](products/prd-youtube-liked-videos.md)
 - [PRD: London Lloyds News Digest](products/prd-london-lloyds-news-digest.md)

@@ -24,7 +24,7 @@ This page is the working reference for the homeserver environment. It captures:
 - LAN IP: `192.168.1.20`
 - Tailscale IP: `100.81.51.70`
 - Role: main Docker/Compose workload host
-- Notable services: mail relay, Nextcloud, Jenkins, n8n, Grafana source services, databases, monitoring helpers
+- Notable services: mail relay, Nextcloud, Jenkins, n8n, Children Email Digest, Grafana source services, databases, monitoring helpers, Qdrant
 
 ### AI Node VM
 - VMID: `101`
@@ -37,7 +37,7 @@ This page is the working reference for the homeserver environment. It captures:
 ### Automation Runner VM
 - VM name: `automation-runner-01`
 - LAN IP: `192.168.1.30`
-- Role: observability, dashboarding, host health collection, automation runner
+- Role: observability, dashboarding, host health collection, automation runner, Memex runner API
 - Grafana URL: `http://192.168.1.30:3000`
 - Prometheus URL: `http://192.168.1.30:9090`
 - Alertmanager URL: `http://192.168.1.30:9093`
@@ -45,16 +45,21 @@ This page is the working reference for the homeserver environment. It captures:
 ## OpenClaw / Jarvis
 
 ### Access
-- Web UI: `https://ai-node-01.tail4bbda6.ts.net:18790`
+- Web UI: `https://ai-node-01.tail4bbda6.ts.net`
 - Gateway host: `ai-node-01`
 - Chat/Control UI: OpenClaw dashboard and chat interface on the AI node
+- Current runtime: `2026.6.8 (844f405)`
+- Gateway loopback: `127.0.0.1:18789`
+- Runtime home: `/var/lib/openclaw`
+- Config file: `/var/lib/openclaw/.openclaw/openclaw.json`
 
 ### Connected channels
 - Telegram: configured and running
-- WhatsApp: linked for family use
+- WhatsApp: disabled unless explicitly re-enabled
 
 ### Provider configuration
-- Default chat provider: `openrouter/openrouter/free` with a small fallback model chain
+- Default agent: `fury`
+- Default chat provider: `google/gemini-3-flash-preview` with fallback model chain
 - Backup providers configured in the environment:
   - OpenRouter
   - DeepSeek
@@ -63,11 +68,22 @@ This page is the working reference for the homeserver environment. It captures:
   - xAI
   - Ollama for local models
 
+### Memory and agents
+- Agents registered: `fury`, `cyborg`, `wayne`, `oracle`, `banner`, `xavier`, `deadpool`, `strange`, `diana`, `loki`, `stark`
+- Agent instruction files: `/var/lib/openclaw/.openclaw/agents/<agent>/agent/AGENTS.md`
+- Memory plugins: `openclaw-mem0` and `memory-wiki`
+- Mem0 mode: open-source
+- Mem0 local models: Ollama `nomic-embed-text` for embeddings and `llama3.2:3b` for extraction
+- Mem0 vector store: Qdrant on `192.168.1.20:6333`, collection `mem0_768d`
+- Mem0 Qdrant secret: `/etc/openclaw/mem0.env`, loaded by `openclaw-gateway.service`
+- Per-agent config overrides are not accepted by the live OpenClaw schema. Use Mem0 `--agent-id` namespaces where supported.
+- Memex MCP server: `memex`, forced-command SSH to `automation-runner-01`
+
 ### Operational notes
 - Heartbeat was tuned to use a smaller local model when practical
-- WhatsApp pairing may require restart after linking
 - OpenClaw gateway access requires pairing and a secure browser context for the control UI
 - Google Workspace CLI is installed on `ai-node-01` for Gmail and related integrations
+- Use `sudo -u openclaw -H sh -lc '<command>'` for OpenClaw filesystem operations; do not rely on `~` from the `labadmin` shell.
 
 ## Databases
 
@@ -94,14 +110,43 @@ This page is the working reference for the homeserver environment. It captures:
 - Health check: TCP probe against `poovannnan.6r4o1.mongodb.net:27017`
 
 ### n8n database
-- Backend: SQLite
-- Host path: `/opt/automation/n8n/data/database.sqlite`
-- Container path: `/home/node/.n8n/database.sqlite`
-- Notes: no Postgres/MySQL backend configured in the observed `.env`
+- Backend: PostgreSQL (`DB_TYPE=postgresdb`)
+- Host path: managed by the `postgres` service in the platform stack
+- Container path: `/home/node/.n8n`
+- Notes: this describes the `docker-host-01` platform n8n; the Paperclip n8n instance on `automation-runner-01` remains a separate local SQLite-backed deployment
+
+### Children Email Digest database
+- Database: `children_email_digest`
+- PostgreSQL role: `ced_app`
+- PostgreSQL container: `postgres` on `docker-host-01`
+- Schema: `ced`
+- Connectivity: the application resolves `postgres:5432` over external Docker network `backend-net`
+- Data: inbound email metadata/body storage, analyses, actions, payments, attachments, run history, AI API audit, delivery audit, balances, and learning filters
+- Logical backup: `/srv/backups/postgres/postgres/<generation>/children_email_digest.dump`
+- Logical backup schedule: included in the all-database dump at `01:30`
+- Logical backup retention: same GFS policy as PBS (`keep-last=7`, `keep-weekly=4`, `keep-monthly=6`)
+- Logical backup log: `/var/log/postgres-backup.log` with weekly rotation
+- VM backup: VM `100` is included in the daily `02:15` PBS snapshot job
+
+### PostgreSQL logical backup coverage
+- `docker-host-01`, container `postgres`: `children_email_digest`, `n8n`, `paperclip`, `postgres`, `youtube_channel_audit`, `youtube_channel_historic`, and `youtube_liked_videos`
+- `automation-runner-01`, container `automation-postgres`: `automation`, `homeserver_db`, `lloyds_digest`, `memex`, and `postgres`
+- `automation-runner-01`, container `compose-postgres-1`: `poovi_ops_platform` and `postgres`
+- Template databases are excluded; every connectable non-template database and each container's PostgreSQL roles are dumped
+- Dump root on each VM: `/srv/backups/postgres/<container>/<generation>/`
+- Retention: latest 7 generations, latest generation from 4 ISO weeks, and latest generation from 6 calendar months
+- VM `100` and VM `103` are both included in the nightly PBS snapshot job
+- PBS datastore `pbs-store` is mounted from the external 4 TB disk at `/mnt/usb-4tb/pbs-datastore`
+- The disk is external storage but remains mounted and online; it is not an air-gapped/offline copy
 
 ### RAG / AI support databases
 - RAG Postgres: `<redacted; see local/private/homeserver-inventory-and-data-collection.md>`
-- RAG Qdrant: `http://localhost:6333`
+- Qdrant: `http://192.168.1.20:6333`
+- Qdrant health: `/healthz` and `/readyz`; `/health` returns 404 on Qdrant 1.17.1
+- Qdrant API key: `QDRANT_API_KEY` in `/srv/stacks/databases/.env`
+- Qdrant collections in use:
+  - `mem0_768d` — OpenClaw Mem0 semantic memory
+  - `memex-knowledge` — Memex payload-only cache, 7,478 points
 
 ## Docker and Compose Workloads on docker-host-01
 
@@ -122,6 +167,26 @@ This page is the working reference for the homeserver environment. It captures:
 - `cadvisor`
 - `prometheus`
 - `node-exporter`
+- `ced-app`
+
+### Children Email Digest
+- Project directory: `/opt/children-email-digest`
+- Compose file: `/opt/children-email-digest/docker-compose.yml`
+- Container/image: `ced-app` / `children-email-digest:latest`
+- Runtime user for deployment: `ced-deploy`; `labadmin` retains host administration through sudo
+- Restart policy: `unless-stopped`
+- Docker network: `backend-net`
+- Persistent mounts: `config` read-only, `secrets` read-only, and `data` read-write from the project directory
+- Dashboard/API: `http://192.168.1.20:8000`; health endpoint: `/api/health`
+- Schedule: `07:30` and `18:00` in `Europe/London`
+- Dependencies: shared PostgreSQL, Gmail API/OAuth, Gemini by default, optional Claude/OpenAI, Gmail API send, and `smtp-relay` fallback
+- Operational logs: `docker logs ced-app`; cron output is redirected to container stdout/stderr
+- Docker log storage: JSON-file driver under `/var/lib/docker/containers/<container-id>/`
+- Application output: `/opt/children-email-digest/output`; latest digest compatibility copy: `/opt/children-email-digest/data/digest.html`
+- Audit sources: PostgreSQL tables `ced.runs`, `ced.api_logs`, `ced.email_logs`, and `ced.learning_filters`
+- Immediate alerts: the cron wrapper sends Slack and Discord notifications for non-zero exits and runs with processing errors
+- External watchdog: `/opt/automation/children-email-digest-monitor/check_run_health.py` on `automation-runner-01`, every five minutes via `/etc/cron.d/children-email-digest-monitor`
+- Watchdog log/state: `/var/log/children-email-digest-monitor.log` and `/var/lib/ced-monitor/incident`
 
 ### Important ports
 - Portainer: `9443`
@@ -240,6 +305,14 @@ This page is the working reference for the homeserver environment. It captures:
 ### Host health collector cron
 - Runs every 5 minutes
 - Collects Proxmox, VM, DB, disk, and cron inventory data
+
+### Children Email Digest schedules
+- Pipeline cron runs inside `ced-app` at `07:30` and `18:00` Europe/London.
+- The independent watchdog on `automation-runner-01` checks every five minutes and alerts on unreachable service, stale runs, processing errors, and missed schedules after a 20-minute grace period.
+- All PostgreSQL databases on `docker-host-01` are dumped at `01:30` via `/etc/cron.d/postgres-backup`.
+- All PostgreSQL databases on `automation-runner-01` are dumped at `01:40` via `/etc/cron.d/postgres-backup`.
+- Backup execution is logged to `/var/log/postgres-backup.log` on each host.
+- The PBS snapshot of VM `100` runs at `02:15` and captures the application files, PostgreSQL volume, and the completed logical dump.
 
 ### OpenClaw updates
 - OpenClaw update schedule was tuned for early morning execution

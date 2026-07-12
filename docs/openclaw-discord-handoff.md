@@ -1,13 +1,13 @@
 # OpenClaw Discord Handoff
 
-Last updated: 2026-05-07
+Last updated: 2026-06-20
 
 This document captures the live Discord setup for OpenClaw on `ai-node-01` so the channel can be re-established or verified without re-discovering the full sequence.
 
 ## Current State
 
 - Host: `ai-node-01` (`192.168.1.24`)
-- OpenClaw runtime: `2026.5.3`
+- OpenClaw runtime: `2026.6.8 (844f405)`
 - Gateway mode: `local`
 - Gateway auth: `token`
 - Discord plugin: `@openclaw/discord`

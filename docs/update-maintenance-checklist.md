@@ -36,6 +36,7 @@ Use this before making changes, and again after any reboot.
     - Portainer
     - Jenkins
     - n8n
+    - Children Email Digest (`ced-app`)
     - Grafana / Prometheus / node-exporter / cAdvisor
     - databases (Postgres, MariaDB, Mongo, Redis)
 
@@ -104,6 +105,7 @@ Before rebooting any host:
   - OpenClaw update
   - dashboard/observability collector
   - any long compose maintenance
+  - Children Email Digest pipeline/backfill
 - Record the currently running timers and active containers.
 - Notify yourself if a service window is in progress.
 
@@ -159,6 +161,7 @@ After each boot or reboot, check:
 ### VM / Service Layer
 - Docker daemon is running on `docker-host-01`.
 - Compose stacks are up and the expected containers are healthy.
+- `ced-app` is running, its internal cron is present, and it can reach the shared PostgreSQL service.
 - Grafana / Prometheus / Alertmanager respond on the runner.
 - OpenClaw gateway is running and reachable on the AI node.
 - YouTube sync timer is active and the next run is scheduled.
@@ -178,6 +181,8 @@ After each boot or reboot, check:
 
 ### Data Layer
 - Local Postgres databases are accepting connections.
+- All PostgreSQL containers on VM `100` and VM `103` have a successful logical dump predating the `02:15` PBS snapshot.
+- Logical dump retention matches PBS: latest 7, weekly 4, and monthly 6.
 - MongoDB Atlas connectivity is confirmed.
 - Supabase connectivity is confirmed if enabled.
 
@@ -200,16 +205,19 @@ After each boot or reboot, check:
 Last completed maintenance pass:
 - Proxmox host `pve`: updated and rebooted
 - `docker-host-01`: updated, rebooted, and Docker daemon restarted
-- `automation-runner-01`: updated and rebooted
+- `automation-runner-01`: updated and rebooted; missing maintenance timers were restored on the correct host
 - `ai-node-01`: updated, checked, no reboot required
-- `pbs-01`: updated and rebooted
-- `jellyfin-01`: updated, mount restored, and container restarted
+- `pbs-01`: updated and healthy; no reboot required
+- `jellyfin-01`: updated, mount present, and container healthy
 
 Verified healthy after boot:
 - Proxmox host reachable and guest inventory restored
 - `docker-host-01` Compose services healthy
 - `automation-runner-01` observability stack healthy
 - `youtube-sync.timer` active on the runner
+- `schedule-guard.timer` active on `automation-runner-01`
+- `monthly-maintenance.timer` active on `automation-runner-01`
+- `monthly-maintenance-resume.timer` active on `automation-runner-01`
 - `openclaw-gateway.service` active on `ai-node-01`
 - Proxmox backup job still present and scheduled
 - `memex-runner.service` active on `automation-runner-01`
@@ -243,7 +251,7 @@ For the next full-stack maintenance window, use this sequence:
 ## Maintenance Report
 See the dated report for the latest full pass:
 
-- [Homeserver Maintenance Report (2026-05-21)](runbooks/homeserver-maintenance-report-2026-05-21.md)
+- [Homeserver Maintenance Report (2026-07-12)](runbooks/homeserver-maintenance-report-2026-07-12.md)
 
 ## Schedule Drift Guard
 There is also a daily schedule integrity check on `automation-runner-01`.

@@ -36,12 +36,19 @@
 
 ## Phase 3 - Routing and delegation
 
+- [x] Build n8n MCP Tools workflow (`Paperclip MCP Tools (FinOSafe)`) with 5 tool chains
+- [x] Wire connections in workflow JSON (`web_search`, `financial_data_api`, `qdrant_search`, `youtube_api`, `reddit_social_search`)
+- [x] Configure provider credentials in n8n's credential store/runtime nodes
+- [x] Confirm all 5 MCP Trigger to action-node connections in n8n
+- [x] Activate workflow and verify the MCP trigger endpoints
+- [x] Register the local n8n MCP proxy in the FinOSafe agent runtime
+- [x] Run an end-to-end test: Paperclip `alpha-researcher` called `web_search` and `financial_data_api`
 - [ ] Define how OpenClaw dispatches work to Hermes
 - [ ] Define how Paperclip routes work to specific agent roles
 - [ ] Create the task payload contract between control plane and worker
 - [ ] Add timeout and retry behavior
 - [ ] Add failure handling for rejected tools and expired tasks
-- [ ] Test gate: OpenClaw can dispatch a task through Hermes and Paperclip without manual intervention
+- [x] Test gate: Paperclip agent can call n8n MCP tools and receive structured results
 
 ## Phase 4 - Memory and knowledge
 

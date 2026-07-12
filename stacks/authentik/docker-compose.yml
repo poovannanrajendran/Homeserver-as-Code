@@ -1,0 +1,48 @@
+services:
+  postgresql:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?Set AUTHENTIK_POSTGRESQL__PASSWORD in .env}
+      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
+      POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+    volumes:
+      - /srv/data/authentik/postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - /srv/data/authentik/redis:/data
+
+  server:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    command: server
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - redis
+    ports:
+      # LAN + Tailscale access. Keep your router/firewall from exposing this to the public internet.
+      - "${AUTHENTIK_BIND_IP:-0.0.0.0}:${AUTHENTIK_HTTP_PORT:-9000}:9000"
+      # NOTE: Portainer commonly binds 9443 on homelabs; default to 9444 to avoid conflicts.
+      - "${AUTHENTIK_BIND_IP:-0.0.0.0}:${AUTHENTIK_HTTPS_PORT:-9444}:9443"
+    volumes:
+      - /srv/data/authentik/media:/media
+      - /srv/data/authentik/custom-templates:/templates
+
+  worker:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    command: worker
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - redis
+    volumes:
+      - /srv/data/authentik/media:/media
+      - /srv/data/authentik/custom-templates:/templates

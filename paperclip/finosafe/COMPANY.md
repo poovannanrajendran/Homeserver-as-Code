@@ -14,6 +14,7 @@ goals:
 includes:
   - agents/strategist/AGENTS.md
   - agents/alpha-researcher/AGENTS.md
+  - agents/market-sentry/AGENTS.md
   - agents/viral-writer/AGENTS.md
   - agents/growth-hacker/AGENTS.md
   - tasks/daily-news-short/TASK.md

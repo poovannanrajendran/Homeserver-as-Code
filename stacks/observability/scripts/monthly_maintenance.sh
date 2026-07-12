@@ -187,7 +187,7 @@ main() {
     'sudo reboot'
 
   update_remote_host "${ai_node}" "${remote_user}" "ai-node-01" \
-    'sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y && sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -y && sudo -u openclaw openclaw update || true' \
+    'sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y && sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -y && sudo -u openclaw openclaw update --yes || true' \
     'sudo reboot'
 
   write_state "awaiting_postboot" "automation-runner-01 update completed; waiting for post-boot verification." "running"
